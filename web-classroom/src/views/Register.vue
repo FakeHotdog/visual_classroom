@@ -14,6 +14,11 @@
     </div>
 
     <div>
+      <label>确认密码：</label>
+      <input v-model="confirmPassword" type="password" placeholder="请再次输入密码">
+    </div>
+
+    <div>
       <label>昵称：</label>
       <input v-model="nickname" placeholder="请输入昵称">
     </div>
@@ -51,6 +56,7 @@ export default {
     return {
       username: '',
       password: '',
+      confirmPassword: '',
       nickname: '',
       captchaCode: '',
       captchaId: '',
@@ -81,8 +87,12 @@ export default {
       }
     },
     async register() {
-      if (!this.username || !this.password || !this.nickname || !this.captchaCode) {
+      if (!this.username || !this.password || !this.confirmPassword || !this.nickname || !this.captchaCode) {
         this.message = '请填写所有信息和验证码'
+        return
+      }
+      if (this.password !== this.confirmPassword) {
+        this.message = '两次输入的密码不一致'
         return
       }
       if (this.password.length < 6 || this.password.length > 20) {
@@ -135,7 +145,7 @@ export default {
 
 <style scoped>
 .register-box {
-  width: 360px;
+  width: 400px;
   margin: 100px auto;
   padding: 20px;
   border: 1px solid #ccc;
@@ -148,7 +158,7 @@ div {
 
 label {
   display: inline-block;
-  width: 70px;
+  width: 100px;
 }
 
 input {

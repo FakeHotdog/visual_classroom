@@ -11,11 +11,16 @@
     @confirm="handleModalConfirm"
     @cancel="handleModalCancel"
   />
+  <UserProfileModal
+    v-model:visible="userProfileVisible"
+    :userId="currentProfileUserId"
+  />
 </template>
 
 <script setup>
 import { provide, ref } from 'vue';
 import CustomModal from './components/CustomPrompt.vue';
+import UserProfileModal from './components/UserProfileModel.vue';
 
 const backendBase = import.meta.env.DEV ? 'http://127.0.0.1:5000' : '';
 provide('backendBase', backendBase);
@@ -25,7 +30,16 @@ const modalMode = ref('alert');
 const modalTitle = ref('');
 const modalContent = ref('');
 const modalPlaceholder = ref('');
+const userProfileModalRef = ref(''); // 用户资料弹窗的 ref
 let modalResolve = null;
+
+const userProfileVisible = ref(false);
+const currentProfileUserId = ref(null);
+
+const showUserProfile = (userId) => {
+  currentProfileUserId.value = userId;
+  userProfileVisible.value = true;
+};
 
 const showModal = ({ mode, title, content = '', placeholder = '' }) => {
   // 防止连续弹出时重置不及时
@@ -57,6 +71,7 @@ const showPrompt = (title, placeholder = '') => showModal({ mode: 'prompt', titl
 provide('showAlert', showAlert);
 provide('showConfirm', showConfirm);
 provide('showPrompt', showPrompt);
+provide('showUserProfile', showUserProfile);
 
 const handleModalConfirm = (val) => {
   if (modalResolve) modalResolve(val);

@@ -6,6 +6,9 @@ import Login from '../views/Login.vue'
 import Register from '../views/Register.vue'
 import Home from '../views/Home.vue'
 import Edit from '../views/Edit.vue'
+import Classroom from '../views/Classroom.vue'
+import PublishStory from '../views/PublishStory.vue'
+import StoryDetail from '../views/StoryDetail.vue'
 
 // 路由配置
 const routes = [
@@ -20,6 +23,21 @@ const routes = [
   { 
     path: '/edit', 
     component: Edit,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/classroom',
+    component: Classroom,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/PublishStory',
+    component: PublishStory,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/StoryDetail',
+    component: StoryDetail,
     meta: { requiresAuth: true }
   }
 ]
