@@ -1,0 +1,509 @@
+page {
+  background: #f8f9fa;
+}
+
+/* 顶部 Tab 栏 */
+.top-tab-bar {
+  display: flex;
+  background: #fff;
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid #eee;
+}
+
+.tab {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 24rpx;
+  color: #888;
+}
+
+.tab.active {
+  color: #d95374;
+}
+
+.icon {
+  width: 40rpx;
+  height: 40rpx;
+  margin-bottom: 6rpx;
+}
+
+/* 内容 */
+.page-body {
+  padding: 30rpx;
+}
+
+.section {
+  background: #fff;
+  border-radius: 20rpx;
+  padding: 30rpx;
+}
+
+/* 座位样式 */
+.seat-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20rpx;
+  margin-top: 30rpx;
+}
+
+.seat {
+  width: 120rpx;
+  text-align: center;
+  background: #f5f5f5;
+  border-radius: 16rpx;
+  padding: 20rpx;
+}
+
+.avatar {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+}
+
+.my-profile {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  margin: 20rpx 0;
+}
+
+.line {
+  height: 1rpx;
+  background: #eee;
+  margin: 30rpx 0;
+}
+
+/* 班级管理样式 */
+.my-info {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+}
+
+.my-avatar {
+  width: 100rpx;
+  height: 100rpx;
+  border-radius: 50%;
+}
+
+.my-detail {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.my-name {
+  font-size: 30rpx;
+  font-weight: bold;
+  color: #333;
+}
+
+.my-role {
+  font-size: 24rpx;
+  color: #d95374;
+}
+
+.quit-btn {
+  background: #ff4d4f;
+  color: #fff;
+  border: none;
+  border-radius: 8rpx;
+  font-size: 24rpx;
+  padding: 12rpx 20rpx;
+}
+
+.section-header {
+  margin-bottom: 20rpx;
+}
+
+.section-title {
+  font-size: 28rpx;
+  font-weight: bold;
+  color: #333;
+}
+
+.member-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+.member-item {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid #f5f5f5;
+}
+
+.member-item:last-child {
+  border-bottom: none;
+}
+
+.member-avatar {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+}
+
+.member-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6rpx;
+}
+
+.member-name {
+  font-size: 28rpx;
+  color: #333;
+}
+
+.owner-tag {
+  font-size: 20rpx;
+  color: #fff;
+  background: #d95374;
+  padding: 2rpx 8rpx;
+  border-radius: 4rpx;
+  margin-left: 10rpx;
+}
+
+.member-signature {
+  font-size: 24rpx;
+  color: #999;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.member-actions {
+  display: flex;
+  gap: 10rpx;
+}
+
+.detail-btn {
+  background: #f0f0f0;
+  color: #333;
+  border: none;
+  border-radius: 8rpx;
+  font-size: 22rpx;
+  padding: 10rpx 16rpx;
+}
+
+.kick-btn {
+  background: #ff4d4f;
+  color: #fff;
+  border: none;
+  border-radius: 8rpx;
+  font-size: 22rpx;
+  padding: 10rpx 16rpx;
+}
+
+/* 班级故事样式 */
+.publish-bar {
+  margin-bottom: 20rpx;
+}
+
+.publish-btn {
+  width: 100%;
+  background: linear-gradient(135deg, #f88daa, #d95374);
+  color: #fff;
+  border-radius: 12rpx;
+  border: none;
+  font-size: 28rpx;
+  padding: 20rpx;
+}
+
+.story-list {
+  padding: 0;
+  background: transparent;
+}
+
+.story-item {
+  background: #fff;
+  border-radius: 20rpx;
+  padding: 30rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 6rpx 20rpx rgba(200, 150, 160, 0.1);
+}
+
+.story-header {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  margin-bottom: 20rpx;
+}
+
+.author-avatar {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+}
+
+.author-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6rpx;
+}
+
+.author-name {
+  font-size: 28rpx;
+  font-weight: 500;
+  color: #333;
+}
+
+.publish-time {
+  font-size: 22rpx;
+  color: #999;
+}
+
+.story-content {
+  display: flex;
+  flex-direction: column;
+  gap: 10rpx;
+}
+
+.story-title {
+  font-size: 30rpx;
+  font-weight: bold;
+  color: #333;
+  line-height: 1.4;
+}
+
+.story-desc {
+  font-size: 26rpx;
+  color: #666;
+  line-height: 1.6;
+}
+
+.story-footer {
+  margin-top: 20rpx;
+  padding-top: 20rpx;
+  border-top: 1rpx solid #f5f5f5;
+}
+
+.image-count {
+  font-size: 24rpx;
+  color: #999;
+}
+
+.empty-story {
+  background: #fff;
+  border-radius: 20rpx;
+  padding: 80rpx 30rpx;
+  text-align: center;
+  box-shadow: 0 6rpx 20rpx rgba(200, 150, 160, 0.1);
+}
+
+.empty-icon {
+  font-size: 80rpx;
+  margin-bottom: 20rpx;
+  display: block;
+}
+
+.empty-text {
+  font-size: 28rpx;
+  color: #333;
+  display: block;
+  margin-bottom: 10rpx;
+}
+
+.empty-tip {
+  font-size: 24rpx;
+  color: #999;
+}
+
+.delete-btn {
+  background: #ff4d4f;
+  color: #fff;
+  border: none;
+  border-radius: 8rpx;
+  font-size: 22rpx;
+  padding: 8rpx 16rpx;
+  margin-left: auto;
+}
+
+/* 班级私信样式 */
+.conversation-list {
+  padding: 0;
+  background: transparent;
+}
+
+.conversation-item {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  padding: 30rpx;
+  background: #fff;
+  border-radius: 20rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 6rpx 20rpx rgba(200, 150, 160, 0.1);
+}
+
+.avatar {
+  width: 100rpx;
+  height: 100rpx;
+  border-radius: 50%;
+}
+
+.conversation-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10rpx;
+}
+
+.top-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.nickname {
+  font-size: 28rpx;
+  font-weight: 500;
+  color: #333;
+}
+
+.time {
+  font-size: 22rpx;
+  color: #999;
+}
+
+.bottom-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.last-message {
+  font-size: 24rpx;
+  color: #666;
+  max-width: 500rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.unread-badge {
+  min-width: 32rpx;
+  height: 32rpx;
+  line-height: 32rpx;
+  text-align: center;
+  background: #ff4d4f;
+  color: #fff;
+  border-radius: 16rpx;
+  font-size: 20rpx;
+  padding: 0 8rpx;
+}
+
+.empty-conversation {
+  background: #fff;
+  border-radius: 20rpx;
+  padding: 80rpx 30rpx;
+  text-align: center;
+  box-shadow: 0 6rpx 20rpx rgba(200, 150, 160, 0.1);
+}
+
+/* 时空教室 */
+.page-body {
+  padding: 0 !important;
+}
+
+.classroom-wrap {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+}
+
+.bg-img {
+  width: 100%;
+  display: block;
+}
+
+.seat-grid {
+  position: absolute;
+  top: 7%;
+  left: 2%;
+  right: 2%;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  gap: 15rpx 10rpx;
+}
+.seat-grid .seat-item:nth-child(4n+2) {
+  margin-right: 60rpx;
+}
+.seat-grid .seat-item:nth-child(4n+3) {
+  margin-left: 60rpx; 
+}
+
+.seat-item {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 2;
+  height: 280rpx; /* 固定总高度，有无名字完全一致 */
+}
+
+/* 空课桌：大小居中 */
+.desk {
+  position: absolute;
+  top: 0rpx; /* 人物图自带课桌，顶部对齐 */
+  width: 150rpx;
+  z-index: 1;
+}
+
+/* 有人：人物图自带课桌，整体居中，顶部对齐 */
+.student {
+  position: absolute;
+  top: 0rpx; /* 人物图自带课桌，顶部对齐 */
+  width: 150rpx;
+  z-index: 1;
+}
+
+/* 名字固定占位，永远居中 */
+.name-wrap {
+  height: 40rpx;
+  line-height: 40rpx;
+  text-align: center;
+  margin-top: 85rpx;
+  z-index: 3;
+}
+
+.seat-name {
+  font-size: 27rpx;
+  color: #fff;
+  background-color: #ff922b; /* 和课桌一致的橙黄色 */
+  padding: 4rpx 12rpx;
+  border-radius: 20rpx; /* 圆角 */
+  white-space: nowrap;
+}
+
+/* 底部按钮：完美居中 */
+.seat-btn-bar {
+  position: fixed;
+  bottom: 60rpx;
+  left: 5%;
+  right: 5%;
+  display: flex;
+  justify-content: center;
+  gap: 40rpx;
+  z-index: 99;
+}
+.btn {
+  width: 42%;
+  height: 80rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50rpx;
+  font-size: 28rpx;
+  border: 0;
+}
+.leave-btn { background: #eee; color: #333; }
+.sit-btn { background: #d95374; color: #fff; }
+.btn[disabled] { background: #ccc !important; }

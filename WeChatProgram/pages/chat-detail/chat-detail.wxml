@@ -1,0 +1,18 @@
+<view class="page">
+  <!-- 聊天消息区域 -->
+  <scroll-view class="chat-container" scroll-y scroll-into-view="{{scrollToId}}" scroll-with-animation>
+    <view id="msg-{{index}}" wx:for="{{messageList}}" wx:key="msgId" class="message-item {{item.senderOpenId === myOpenid ? 'self' : 'other'}}">
+      <image class="avatar" src="{{item.avatarUrl}}" mode="aspectFill"></image>
+      <view class="message-bubble">
+        <text class="message-content">{{item.content}}</text>
+        <text class="message-time">{{formatTime(item.createTime)}}</text>
+      </view>
+    </view>
+  </scroll-view>
+
+  <!-- 底部输入区域 -->
+  <view class="input-bar">
+    <input class="input" placeholder="输入消息..." bindconfirm="sendMessage" model:value="{{inputContent}}" />
+    <button class="send-btn" bindtap="sendMessage" disabled="{{!inputContent}}">发送</button>
+  </view>
+</view>

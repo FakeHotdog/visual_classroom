@@ -1,0 +1,52 @@
+page {
+  background: linear-gradient(to bottom, #fff5f7, #ffeef2);
+  min-height: 100rpx;
+}
+
+.page {
+  padding: 40rpx 30rpx;
+}
+
+.card {
+  background: #fff;
+  border-radius: 30rpx;
+  padding: 40rpx;
+  box-shadow: 0 10rpx 30rpx rgba(200, 150, 160, 0.1);
+}
+
+.title {
+  font-size: 36rpx;
+  font-weight: bold;
+  text-align: center;
+  display: block;
+  margin-bottom: 50rpx;
+  color: #d95374;
+}
+
+.item {
+  margin-bottom: 30rpx;
+}
+
+.label {
+  font-size: 28rpx;
+  color: #444;
+  display: block;
+  margin-bottom: 10rpx;
+}
+
+.input {
+  border: 1px solid #eee;
+  border-radius: 12rpx;
+  padding: 24rpx 20rpx;
+  font-size: 28rpx;
+}
+
+.create-btn {
+  margin-top: 40rpx;
+  background: linear-gradient(135deg, #f88daa, #d95374);
+  color: #fff;
+  border-radius: 16rpx;
+  border: none;
+  padding: 24rpx;
+  font-size: 30rpx;
+}

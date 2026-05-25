@@ -1,0 +1,26 @@
+# 忽略 flask 目录下的所有文件和文件夹
+*
+
+# 允许跟踪 .gitignore 文件本身
+!.gitignore
+
+# 允许跟踪 WeChatProgram 整个文件夹
+!WeChatProgram/
+!WeChatProgram/**
+
+# 允许跟踪 web-classroom 文件夹本身（才能进得去里面）
+!web-classroom/
+
+# 在 web-classroom 内部，忽略所有
+web-classroom/*
+
+# 但单独允许 web-classroom 下的 src 和 public 文件夹
+!web-classroom/src/
+!web-classroom/src/**
+!web-classroom/public/
+!web-classroom/public/**
+!web-classroom/index.html
+# 不能有app_h5.py，因为里面包含密码等敏感信息，不应该被提交到版本库中
+!web-classroom/package.json
+!web-classroom/package-lock.json
+!web-classroom/vite.config.js

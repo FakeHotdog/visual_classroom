@@ -1,0 +1,71 @@
+<!-- 顶部个人信息栏 -->
+<view class="user-header">
+  <image class="header-avatar" src="{{wxUserInfo.avatarUrl}}" mode="aspectFill"></image>
+  <view class="user-info">
+    <text class="nickname">{{wxUserInfo.nickName || '未设置昵称'}}</text>
+    <text class="signature">{{wxUserInfo.signature || '这家伙很懒，什么都没留下~'}}</text>
+  </view>
+  <view class="edit-btn" bindtap="goEditUser">编辑</view>
+</view>
+
+<view class="page-container">
+  <!-- 1. 搜索栏 -->
+  <view class="search-box">
+    <input class="search-input" placeholder="搜索班级名称" bindinput="onInput" value="{{keyword}}" />
+    <button class="search-btn" bindtap="searchClass">搜索</button>
+  </view>
+
+  <!-- 2. 快捷功能区 -->
+  <view class="quick-menu">
+    <view class="menu-item" bindtap="goCreate">
+      <view class="icon">🏫</view>
+      <text class="text">创建班级</text>
+    </view>
+    <view class="menu-item" bindtap="goMy">
+      <view class="icon">📚</view>
+      <text class="text">我的班级</text>
+    </view>
+  </view>
+
+  <!-- 3. 班级列表区 -->
+  <view class="class-section">
+    <view class="section-title">班级列表</view>
+    <view class="class-list">
+      <view class="class-card" wx:for="{{list}}" wx:key="classId">
+        <view class="card-header">
+          <view class="class-left">
+            <text class="class-name">{{item.className}}</text>
+            <text class="owner-name"> 管理员：{{item.ownerName}}
+            </text>
+          </view>
+          <text class="class-count">{{item.memberCount}}/100人</text>
+        </view>
+        <view class="card-footer">
+          <!-- 已在班级 → 进入教室 -->
+          <button wx:if="{{item.isInClass}}" class="enter-btn" size="mini" bindtap="enterClass" data-id="{{item.classId}}"> 进入教室
+          </button>
+          <!-- 未在班级 → 申请加入 -->
+          <button wx:else class="enter-btn" size="mini" bindtap="enterClass" data-id="{{item.classId}}">
+            加入班级
+          </button>
+          <!-- 管理员才能解散 -->
+          <button wx:if="{{item.ownerOpenId === wxUserInfo.openid}}" class="dissolve-btn" size="mini" bindtap="dissolveClass" data-id="{{item.classId}}">
+            解散班级
+          </button>
+        </view>
+      </view>
+
+      <!-- 暂无班级的占位卡片 -->
+      <view class="empty-card" wx:if="{{list.length === 0}}">
+        <text class="empty-icon">📭</text>
+        <text class="empty-text">还没有找到班级</text>
+        <text class="empty-tip">试试搜索班级名称，或者创建一个新班级吧~</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 4. 底部标语（新增，撑满空间） -->
+  <view class="footer">
+    <text class="footer-text">时光不老 · 我们不散</text>
+  </view>
+</view>

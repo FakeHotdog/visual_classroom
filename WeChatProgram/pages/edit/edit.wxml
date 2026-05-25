@@ -1,0 +1,84 @@
+<view class="page">
+  <!-- 头像（核心，微信 fallback） -->
+  <view class="avatar-wrap">
+    <image class="avatar" src="{{userInfo.avatarUrl}}" mode="aspectFill"></image>
+    <view class="tip" bindtap="chooseAvatar">点击更换头像</view>
+  </view>
+
+  <!-- 昵称（必填，微信 fallback） -->
+  <view class="item required">
+    <text class="label">昵称 <text class="required-tag">*</text></text>
+    <input 
+      class="input" 
+      value="{{userInfo.nickName}}" 
+      bindinput="inputNickname" 
+      placeholder="请输入昵称" 
+      maxlength="12"
+    />
+  </view>
+
+  <!-- 身份选择（贴合教室场景） -->
+  <view class="item">
+    <text class="label">身份</text>
+    <picker bindchange="pickIdentity" value="{{identityIndex}}" range="{{identityList}}">
+      <view class="picker-val">{{userInfo.identity || '请选择身份'}}</view>
+    </picker>
+  </view>
+
+  <!-- 性别 -->
+  <view class="item">
+    <text class="label">性别</text>
+    <picker bindchange="pickGender" value="{{genderIndex}}" range="{{genderList}}">
+      <view class="picker-val">{{userInfo.gender || '请选择性别'}}</view>
+    </picker>
+  </view>
+
+  <!-- 生日 -->
+  <view class="item">
+  <text class="label">生日</text>
+  <picker mode="date" value="{{userInfo.birthday}}" bindchange="onBirthdayChange">
+    <view class="val">{{userInfo.birthday || '请选择生日'}}</view>
+  </picker>
+</view>
+
+  <!-- 联系电话（带校验） -->
+  <view class="item">
+    <text class="label">联系电话</text>
+    <input 
+      class="input" 
+      value="{{userInfo.phone}}" 
+      bindinput="inputPhone" 
+      placeholder="可选，方便班级内联系" 
+      type="number"
+      maxlength="11"
+    />
+  </view>
+
+  <!-- 个性签名（短文案） -->
+  <view class="item textarea">
+    <text class="label">个性签名</text>
+    <textarea 
+      placeholder="显示在首页" 
+      value="{{userInfo.signature}}" 
+      bindinput="inputSignature"
+      maxlength="30"
+    ></textarea>
+  </view>
+
+  <!-- 自我介绍（长文案） -->
+  <view class="item textarea">
+    <text class="label">自我介绍</text>
+    <textarea 
+      placeholder="详细介绍自己" 
+      value="{{userInfo.desc}}" 
+      bindinput="inputDesc"
+      maxlength="100"
+    ></textarea>
+  </view>
+
+  <!-- 保存按钮（底部固定，防止遮挡） -->
+  <button class="save-btn" bindtap="saveUserInfo">保存个人资料</button>
+  <view class="footer">
+    <text class="footer-text">时光不老 · 我们不散</text>
+  </view>
+</view>

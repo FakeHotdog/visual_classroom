@@ -1,0 +1,149 @@
+<!-- 顶部 TabBar（图标+文字） -->
+<view class="top-tab-bar">
+  <view class="tab {{currentTab===0 ? 'active' : ''}}" bindtap="switchTab" data-index="0">
+    <image class="icon" src="https://cdn.jsdelivr.net/gh/FakeHotdog/classroom-img/icon1.png"></image>
+    <text>时空教室</text>
+  </view>
+  <view class="tab {{currentTab===1 ? 'active' : ''}}" bindtap="switchTab" data-index="1">
+    <image class="icon" src="https://cdn.jsdelivr.net/gh/FakeHotdog/classroom-img/icon2.png"></image>
+    <text>班级私信</text>
+  </view>
+  <view class="tab {{currentTab===2 ? 'active' : ''}}" bindtap="switchTab" data-index="2">
+    <image class="icon" src="https://cdn.jsdelivr.net/gh/FakeHotdog/classroom-img/icon3.png"></image>
+    <text>班级故事</text>
+  </view>
+  <view class="tab {{currentTab===3 ? 'active' : ''}}" bindtap="switchTab" data-index="3">
+    <image class="icon" src="https://cdn.jsdelivr.net/gh/FakeHotdog/classroom-img/icon4.png"></image>
+    <text>班级管理</text>
+  </view>
+</view>
+
+<!-- 内容区域（4个模块全部在这里，不跳转页面） -->
+<view class="page-body">
+
+  <!-- ============== Tab0：时空教室 ============== -->
+  <view wx:if="{{currentTab===0}}" class="classroom-wrap">
+    <!-- 教室背景 -->
+    <image class="bg-img" src="https://cdn.jsdelivr.net/gh/FakeHotdog/classroom-img/bg.jpg" mode="widthFix"></image>
+
+    <!-- 座位网格 -->
+    <view class="seat-grid">
+      <view class="seat-item" wx:for="{{seatList}}" wx:key="index" bindtap="selectSeat" data-index="{{index}}">
+        <image wx:if="{{!item.isOccupied}}" class="desk" src="https://cdn.jsdelivr.net/gh/FakeHotdog/classroom-img/desk.png" mode="widthFix"></image>
+        <image wx:else class="student" src="{{item.gender === '女' ? 'https://cdn.jsdelivr.net/gh/FakeHotdog/classroom-img/girl.png' : 'https://cdn.jsdelivr.net/gh/FakeHotdog/classroom-img/boy.png'}}" mode="widthFix"></image>
+        <view class="name-wrap">
+          <text wx:if="{{item.isOccupied}}" class="seat-name">{{item.nickName}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 底部按钮 -->
+    <view class="seat-btn-bar">
+      <button class="btn leave-btn" bindtap="leaveSeat" disabled="{{mySeatIndex === -1}}">下座位</button>
+      <button class="btn sit-btn" bindtap="takeSeat" disabled="{{selectedIndex === -1}}">{{mySeatIndex === -1 ? '上座位' : '换座位'}}</button>
+    </view>
+  </view>
+
+  <!-- ============== Tab1：班级私信 ============== -->
+  <view wx:if="{{currentTab===1}}">
+    <!-- 会话列表 -->
+    <view class="section conversation-list">
+      <view class="conversation-item" wx:for="{{conversationList}}" wx:key="openid" bindtap="goToChat" data-openid="{{item.openid}}" data-name="{{item.nickName}}">
+        <image class="avatar" src="{{item.avatarUrl}}" mode="aspectFill"></image>
+        <view class="conversation-info">
+          <view class="top-row">
+            <text class="nickname">{{item.nickName || '未知用户'}}</text>
+            <text class="time">{{item.lastTime}}</text>
+          </view>
+          <view class="bottom-row">
+            <text class="last-message">{{item.lastMessage || '暂无消息'}}</text>
+            <view class="unread-badge" wx:if="{{item.unreadCount > 0}}">{{item.unreadCount > 99 ? '99+' : item.unreadCount}}</view>
+          </view>
+        </view>
+      </view>
+
+      <!-- 空状态 -->
+      <view class="empty-conversation" wx:if="{{conversationList.length === 0}}">
+        <text class="empty-icon">💬</text>
+        <text class="empty-text">还没有私信</text>
+        <text class="empty-tip">去班级管理页点击同学头像开始聊天吧~</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- ============== Tab2：班级故事 ============== -->
+  <view wx:if="{{currentTab===2}}">
+    <!-- 顶部发布按钮 -->
+    <view class="publish-bar">
+      <button class="publish-btn" bindtap="goToPublish">✏️ 发布新故事</button>
+    </view>
+
+    <!-- 故事列表 -->
+    <view class="section story-list">
+      <view class="story-item" wx:for="{{storyList}}" wx:key="storyId" bindtap="goToStoryDetail" data-id="{{item.storyId}}">
+        <view class="story-header">
+          <image class="author-avatar" src="{{item.authorAvatar}}" mode="aspectFill"></image>
+          <view class="author-info">
+            <text class="author-name">{{item.authorName || '未知用户'}}</text>
+            <text class="publish-time">{{item.createTime}}</text>
+          </view>
+          <!-- 新增：删除按钮（只有作者和管理员可见） -->
+          <button wx:if="{{item.authorOpenId === myOpenid || classInfo.ownerOpenId === myOpenid}}" class="delete-btn" size="mini" catch:tap="deleteStory" data-id="{{item.storyId}}">
+            删除
+          </button>
+        </view>
+        <view class="story-content">
+          <text class="story-title">{{item.title}}</text>
+          <text class="story-desc">{{item.content}}</text>
+        </view>
+        <view class="story-footer" wx:if="{{item.imageCount > 0}}">
+          <text class="image-count">📷 {{item.imageCount}} 张图片</text>
+        </view>
+      </view>
+
+      <!-- 空状态 -->
+      <view class="empty-story" wx:if="{{storyList.length === 0}}">
+        <text class="empty-icon">📖</text>
+        <text class="empty-text">还没有班级故事</text>
+        <text class="empty-tip">点击上方按钮发布第一个故事吧~</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- ============== Tab3：班级管理 ============== -->
+  <view wx:if="{{currentTab===3}}">
+    <!-- 自己的个人信息（最顶部） -->
+    <view class="section">
+      <view class="my-info">
+        <image class="my-avatar" src="{{myInfo.avatarUrl || 'https://cdn.jsdelivr.net/gh/FakeHotdog/classroom-img/default-avatar.jpg'}}" mode="aspectFill"></image>
+        <view class="my-detail">
+          <text class="my-name">{{myInfo.nickName}}</text>
+          <text class="my-role">{{isOwner ? '班级管理员' : '普通成员'}}</text>
+        </view>
+        <button class="quit-btn" size="mini" bindtap="quitClass">退出班级</button>
+      </view>
+    </view>
+
+    <!-- 班级成员列表 -->
+    <view class="section">
+      <view class="section-header">
+        <text class="section-title">班级成员 ({{classInfo.memberCount}}人)</text>
+      </view>
+
+      <view class="member-list">
+        <view class="member-item" wx:for="{{memberList}}" wx:key="openid">
+          <image class="member-avatar" src="{{item.avatarUrl || 'https://cdn.jsdelivr.net/gh/FakeHotdog/classroom-img/default-avatar.jpg'}}" mode="aspectFill"></image>
+          <view class="member-info">
+            <text class="member-name">{{item.nickName}} <text wx:if="{{item.isOwner}}" class="owner-tag">管理员</text></text>
+            <text class="member-signature">{{item.signature || '这个人很懒，什么都没写'}}</text>
+          </view>
+          <view class="member-actions">
+            <button class="detail-btn" size="mini" bindtap="viewMemberDetail" data-openid="{{item.openid}}">详情</button>
+            <button wx:if="{{isOwner && !item.isOwner}}" class="kick-btn" size="mini" bindtap="kickMember" data-openid="{{item.openid}}" data-name="{{item.nickName}}">踢出</button>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+</view>

@@ -1,0 +1,59 @@
+<!-- login.wxml -->
+<view class="container">
+  <!-- 1. 顶部Logo和标题区域 -->
+  <view class="header">
+    <view class="logo-classroom">
+      <!-- 这里用一个简单的图标代替，你可以换成自己的图片 -->
+      <text class="logo-icon">🎓</text>
+    </view>
+    <text class="title">时空教室</text>
+    <text class="subtitle">Hi，老同学，好久不见</text>
+  </view>
+
+  <!-- 2. 信息填写区域 -->
+  <view class="form-area">
+    <!-- 头像选择 (微信最新规范：使用 open-type="chooseAvatar") -->
+    <view class="avatar-wrapper">
+      <button class="avatar-btn" open-type="chooseAvatar" bind:chooseavatar="onChooseAvatar">
+        <image class="avatar" src="{{avatarUrl ? avatarUrl : 'https://cdn.jsdelivr.net/gh/FakeHotdog/classroom-img/default-avatar.jpg'}}" mode="aspectFill"></image>
+        <view class="avatar-tip" wx:if="{{!avatarUrl}}">点击获取头像</view>
+      </button>
+    </view>
+
+    <!-- 昵称输入 (微信最新规范：使用 type="nickname") -->
+    <view class="input-group">
+      <text class="label">你的称呼</text>
+      <input 
+        class="input-box" 
+        type="nickname" 
+        placeholder="请输入你的真实姓名" 
+        value="{{nickName}}"
+        bindinput="onNicknameInput"
+      />
+    </view>
+
+    <!-- 登录按钮 -->
+    <button 
+      class="login-btn {{(avatarUrl && nickName) ? 'active' : 'disabled'}}" 
+      bindtap="handleLogin"
+      disabled="{{!avatarUrl || !nickName}}"
+    >
+      开启青春回忆
+    </button>
+  </view>
+  <!-- 3. 底部用户协议 (微信强制要求) -->
+  <view class="footer">
+    <text class="policy-text"> 登录即为同意
+      <text class="link" bind:tap="goAgreement"> 《用户协议》</text>
+      与<text class="link" bind:tap="goPrivacy"> 《隐私政策》</text>
+    </text>
+  </view>
+</view>
+<!-- 自定义协议弹窗 -->
+<view class="modal" wx:if="{{showModal}}">
+  <view class="modal-content">
+    <view class="modal-title">{{modalTitle}}</view>
+    <view class="modal-body">{{modalContent}}</view>
+    <button class="modal-btn" bindtap="closeModal">确定</button>
+  </view>
+</view>

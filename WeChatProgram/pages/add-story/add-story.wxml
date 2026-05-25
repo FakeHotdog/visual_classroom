@@ -1,0 +1,30 @@
+<view class="page">
+  <view class="card">
+    <view class="form-item">
+      <text class="label">故事标题</text>
+      <input class="input" placeholder="请输入故事标题" bindinput="inputTitle" maxlength="50" />
+    </view>
+
+    <view class="form-item">
+      <text class="label">故事内容</text>
+      <textarea class="textarea" placeholder="分享你的班级故事..." bindinput="inputContent" maxlength="1000" auto-height />
+    </view>
+
+    <view class="form-item">
+      <text class="label">图片（最多9张）</text>
+      <view class="image-grid">
+        <view class="image-item" wx:for="{{imageList}}" wx:key="index">
+          <image class="uploaded-image" src="{{item}}" mode="aspectFill"></image>
+          <view class="delete-btn" bindtap="deleteImage" data-index="{{index}}">×</view>
+        </view>
+        <view class="add-image-btn" wx:if="{{imageList.length < 9}}" bindtap="chooseImages">
+          <text class="add-icon">+</text>
+          <text class="add-text">添加图片</text>
+        </view>
+      </view>
+    </view>
+
+    <button class="publish-btn" bindtap="publishStory"> 发布故事
+    </button>
+  </view>
+</view>

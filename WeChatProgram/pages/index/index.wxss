@@ -1,0 +1,210 @@
+.page {
+  background: linear-gradient(to bottom, #fff5f7, #ffeef2);
+  min-height: 100rpx;
+}
+
+.page-container {
+  padding: 30rpx;
+}
+
+/* 搜索栏 */
+.search-box {
+  display: flex;
+  gap: 20rpx;
+  margin-bottom: 30rpx;
+}
+
+.search-input {
+  flex: 1;
+  background: #fff;
+  border-radius: 50rpx;
+  padding: 20rpx 30rpx;
+  font-size: 26rpx;
+  box-shadow: 0 4rpx 12rpx rgba(200, 150, 160, 0.1);
+}
+
+/* 修复：搜索按钮居中 */
+.search-btn {
+  background: linear-gradient(135deg, #f88daa, #d95374);
+  color: #fff;
+  border-radius: 50rpx;
+  padding: 0 40rpx;
+  font-size: 26rpx;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 快捷功能区 */
+.quick-menu {
+  display: flex;
+  justify-content: space-between;
+  gap: 20rpx;
+  margin-bottom: 40rpx;
+}
+
+.menu-item {
+  width: 48%;
+  background: #fff;
+  border-radius: 20rpx;
+  padding: 30rpx 20rpx;
+  text-align: center;
+  box-shadow: 0 6rpx 20rpx rgba(200, 150, 160, 0.1);
+}
+
+.icon {
+  font-size: 48rpx;
+  margin-bottom: 10rpx;
+}
+
+.text {
+  font-size: 26rpx;
+  color: #333;
+}
+.signature {
+  font-size: 24rpx;
+  color: #999;
+  margin-top: 8rpx;
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 320rpx;
+}
+/* 班级列表区 */
+.class-section {
+  margin-top: 20rpx;
+}
+
+.section-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 20rpx;
+}
+
+.class-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+.class-card {
+  background: #fff;
+  border-radius: 20rpx;
+  padding: 30rpx;
+  box-shadow: 0 6rpx 20rpx rgba(200, 150, 160, 0.1);
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20rpx;
+}
+
+.class-name {
+  font-size: 30rpx;
+  font-weight: bold;
+  color: #333;
+}
+.class-left {
+  display: flex;
+  flex-direction: column;
+  gap: 6rpx;
+}
+
+.owner-name {
+  font-size: 24rpx;
+  color: #999;
+}
+.class-count {
+  font-size: 24rpx;
+  color: #999;
+}
+
+/* 空状态卡片 */
+.empty-card {
+  background: #fff;
+  border-radius: 20rpx;
+  padding: 60rpx 30rpx;
+  text-align: center;
+  box-shadow: 0 6rpx 20rpx rgba(200, 150, 160, 0.1);
+}
+
+.empty-icon {
+  font-size: 60rpx;
+  margin-bottom: 20rpx;
+  display: block;
+}
+
+.empty-text {
+  font-size: 28rpx;
+  color: #333;
+  display: block;
+  margin-bottom: 10rpx;
+}
+
+.empty-tip {
+  font-size: 24rpx;
+  color: #999;
+}
+
+/* 顶部个人信息栏 */
+.user-header {
+  display: flex;
+  align-items: center;
+  background: #fff;
+  margin: 20rpx 30rpx;
+  padding: 25rpx 30rpx;
+  border-radius: 20rpx;
+  box-shadow: 0 6rpx 20rpx rgba(200,150,160,0.1);
+}
+.header-avatar {
+  width: 100rpx;
+  height: 100rpx;
+  border-radius: 50%;
+  background: #eee;
+}
+.user-info {
+  flex: 1;
+  margin-left: 25rpx;
+}
+.nickname {
+  font-size: 30rpx;
+  color: #333;
+  font-weight: 500;
+}
+.edit-btn {
+  font-size: 26rpx;
+  color: #d95374;
+  padding: 10rpx 20rpx;
+  border: 1rpx solid #d95374;
+  border-radius: 30rpx;
+}
+.card-footer {
+  margin-top: 20rpx;
+  text-align: right; /* 整体右对齐 */
+}
+.enter-btn {
+  background: linear-gradient(135deg, #f88daa, #d95374);
+  color: #fff;
+  border-radius: 10rpx;
+  font-size: 24rpx;
+  border: none;
+  padding: 12rpx 24rpx;
+  display: inline-block;
+  margin-left: 16rpx;
+}
+
+.dissolve-btn {
+  background: #ff4d4f;
+  color: #fff;
+  font-size: 24rpx;
+  border-radius: 10rpx;
+  border: none;
+  padding: 12rpx 24rpx;
+  display: inline-block;
+  margin-left: 24rpx;
+}

@@ -1,0 +1,198 @@
+/* login.wxss */
+page {
+  background-color: #f7f8fa;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.container {
+  padding: 80rpx 60rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* 顶部区域 */
+.header {
+  text-align: center;
+  margin-bottom: 100rpx;
+}
+
+.logo-classroom {
+  width: 160rpx;
+  height: 160rpx;
+  background-color: #ffffff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 30rpx;
+  box-shadow: 0 10rpx 30rpx rgba(0, 0, 0, 0.05);
+}
+
+.logo-icon {
+  font-size: 80rpx;
+}
+
+.title {
+  font-size: 48rpx;
+  font-weight: bold;
+  color: #333333;
+  display: block;
+  margin-bottom: 16rpx;
+}
+
+.subtitle {
+  font-size: 28rpx;
+  color: #999999;
+}
+
+/* 表单区域 */
+.form-area {
+  width: 100%;
+  background: #ffffff;
+  padding: 60rpx 40rpx;
+  border-radius: 24rpx;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.02);
+}
+
+/* 头像 */
+.avatar-wrapper {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 60rpx;
+}
+
+.avatar-btn {
+  padding: 0 !important;
+  background: transparent !important;
+  border: none !important;
+  width: 160rpx;
+  height: 160rpx;
+  position: relative;
+}
+
+.avatar-btn::after {
+  border: none;
+}
+
+.avatar {
+  width: 160rpx;
+  height: 160rpx;
+  border-radius: 50%;
+  background-color: #f0f0f0;
+  border: 4rpx solid #e0e0e0;
+}
+
+.avatar-tip {
+  position: absolute;
+  bottom: -40rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 24rpx;
+  color: #07c160; /* 微信绿 */
+}
+
+/* 输入框 */
+.input-group {
+  margin-bottom: 60rpx;
+}
+
+.label {
+  font-size: 28rpx;
+  color: #333;
+  margin-bottom: 16rpx;
+  display: block;
+  font-weight: 500;
+}
+
+.input-box {
+  width: 100%;
+  height: 88rpx;
+  background: #f7f8fa;
+  border-radius: 12rpx;
+  padding: 0 24rpx;
+  font-size: 30rpx;
+  box-sizing: border-box;
+}
+
+/* 登录按钮 */
+.login-btn {
+  width: 100%;
+  height: 96rpx;
+  background: #cccccc;
+  color: #ffffff;
+  border-radius: 48rpx;
+  font-size: 32rpx;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s;
+}
+
+.login-btn::after {
+  border: none;
+}
+
+.login-btn.active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); /* 渐变紫，比较有青春感 */
+  box-shadow: 0 10rpx 20rpx rgba(102, 126, 234, 0.3);
+}
+
+.login-btn.disabled {
+  opacity: 0.6;
+}
+
+/* 底部 */
+.footer {
+  margin-top: 80rpx;
+}
+
+.policy-text {
+  font-size: 24rpx;
+  color: #999;
+}
+
+.link {
+  color: #576b95;
+}
+
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+.modal-content {
+  width: 80%;
+  background: #fff;
+  border-radius: 20rpx;
+  padding: 40rpx;
+}
+.modal-title {
+  font-size: 34rpx;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 30rpx;
+}
+.modal-body {
+  font-size: 28rpx;
+  line-height: 1.6;
+  color: #333;
+  white-space: pre-line; /* 关键：自动换行 */
+}
+.modal-btn {
+  margin-top: 40rpx;
+  background: #07c160;
+  color: #fff;
+  border-radius: 10rpx;
+  font-size: 30rpx;
+}

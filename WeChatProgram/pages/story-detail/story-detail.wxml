@@ -1,0 +1,39 @@
+<view class="page">
+  <view class="card">
+    <!-- 作者信息 -->
+    <view class="author-header">
+      <image class="author-avatar" src="{{storyInfo.authorAvatar || 'https://cdn.jsdelivr.net/gh/FakeHotdog/classroom-img/default-avatar.jpg'}}" mode="aspectFill"></image>
+      <view class="author-info">
+        <text class="author-name">{{storyInfo.authorName || '未知用户'}}</text>
+        <text class="publish-time">{{storyInfo.createTime}}</text>
+      </view>
+      <!-- 新增：删除按钮（只有作者和管理员可见） -->
+      <button 
+        wx:if="{{storyInfo.authorOpenId === myOpenid || classOwnerOpenId === myOpenid}}"
+        class="delete-btn" 
+        size="mini" 
+        bindtap="deleteStory"
+      >
+        删除
+      </button>
+    </view>
+
+    <!-- 故事内容 -->
+    <view class="story-content">
+      <text class="story-title">{{storyInfo.title}}</text>
+      <text class="story-text">{{storyInfo.content || '暂无内容'}}</text>
+    </view>
+
+    <view class="image-grid" wx:if="{{storyInfo.images && storyInfo.images.length > 0}}">
+      <block wx:for="{{storyInfo.images}}" wx:key="index">
+        <image 
+          class="story-image" 
+          src="{{item}}" 
+          mode="aspectFill"
+          bindtap="previewImage"
+          data-index="{{index}}"
+        ></image>
+      </block>
+    </view>
+  </view>
+</view>

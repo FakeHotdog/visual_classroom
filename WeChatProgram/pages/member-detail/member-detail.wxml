@@ -1,0 +1,45 @@
+<view class="page">
+  <view class="card">
+    <!-- 顶部个人信息 -->
+    <view class="profile-header">
+      <image class="avatar" src="{{userInfo.avatarUrl || 'https://cdn.jsdelivr.net/gh/FakeHotdog/classroom-img/default-avatar.jpg'}}" mode="aspectFill"></image>
+      <view class="profile-info">
+        <text class="nickname">{{userInfo.nickName || '未知用户'}}</text>
+        <text class="identity">{{userInfo.identity || '未设置身份'}}</text>
+      </view>
+    </view>
+
+    <!-- 信息列表 -->
+    <view class="info-list">
+      <view class="info-item" wx:if="{{userInfo.gender}}">
+        <text class="label">性别</text>
+        <text class="value">{{userInfo.gender}}</text>
+      </view>
+
+      <view class="info-item" wx:if="{{userInfo.birthday}}">
+        <text class="label">生日</text>
+        <text class="value">{{userInfo.birthday}}</text>
+      </view>
+
+      <view class="info-item" wx:if="{{userInfo.phone}}">
+        <text class="label">联系电话</text>
+        <text class="value">{{userInfo.phone}}</text>
+      </view>
+
+      <view class="info-item" wx:if="{{userInfo.signature}}">
+        <text class="label">个性签名</text>
+        <text class="value">{{userInfo.signature}}</text>
+      </view>
+
+      <view class="info-item" wx:if="{{userInfo.desc}}">
+        <text class="label">个人简介</text>
+        <text class="value">{{userInfo.desc}}</text>
+      </view>
+
+      <!-- 空状态提示 -->
+      <view class="empty-info" wx:if="{{!userInfo.gender && !userInfo.birthday && !userInfo.signature && !userInfo.desc}}">
+        <text>这个人很懒，什么都没留下~</text>
+      </view>
+    </view>
+  </view>
+</view>

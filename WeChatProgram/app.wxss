@@ -1,0 +1,17 @@
+/**app.wxss**/
+page {
+  background: linear-gradient(to bottom, #fff5f7, #ffeef2);
+  min-height: 100rpx;
+}
+
+/* 底部标语 */
+.footer {
+  margin-top: 80rpx;
+  text-align: center;
+  padding-bottom: 40rpx;
+}
+
+.footer-text {
+  font-size: 24rpx;
+  color: #ccc;
+}

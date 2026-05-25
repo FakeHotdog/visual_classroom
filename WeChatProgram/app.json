@@ -1,0 +1,26 @@
+{
+  "entryPagePath": "pages/index/index",
+  "pages": [
+    "pages/index/index",
+    "pages/login/login",
+    "pages/classroom/classroom",
+    "pages/create-class/create-class",
+    "pages/edit/edit",
+    "pages/add-story/add-story",
+    "pages/story-detail/story-detail",
+    "pages/member-detail/member-detail",
+    "pages/chat-detail/chat-detail"
+  ],
+  "window": {
+    "navigationBarTitleText": "时空教室",
+    "backgroundColor": "#ffffff",
+    "backgroundTextStyle": "dark",
+    "enablePullDownRefresh": true,
+    "navigationBarBackgroundColor": "#d95374",
+    "navigationBarTextStyle": "white"
+  },
+  "style": "v2",
+  "componentFramework": "glass-easel",
+  "sitemapLocation": "sitemap.json",
+  "lazyCodeLoading": "requiredComponents"
+}

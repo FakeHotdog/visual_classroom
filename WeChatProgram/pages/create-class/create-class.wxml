@@ -1,0 +1,31 @@
+<view class="page">
+  <view class="card">
+    <text class="title">创建新班级</text>
+
+    <view class="item">
+      <text class="label">班级名称</text>
+      <input 
+        class="input" 
+        placeholder="请输入班级名称" 
+        bindinput="inputName"
+      />
+    </view>
+
+    <view class="item">
+      <text class="label">班级暗号（可选）</text>
+      <input 
+        class="input" 
+        placeholder="不设置则无需暗号" 
+        bindinput="inputCode"
+      />
+    </view>
+
+    <button 
+      class="create-btn" 
+      bindtap="createClass"
+      loading="{{loading}}"
+    >
+      确认创建班级
+    </button>
+  </view>
+</view>
