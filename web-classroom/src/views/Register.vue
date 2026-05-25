@@ -56,16 +56,18 @@ export default {
       captchaId: '',
       captchaImage: '',
       message: '',
-      loading: false // 添加加载状态，防止重复点击
+      loading: false, // 添加加载状态，防止重复点击
+      backendBase: ''
     }
   },
   mounted() {
+    this.backendBase = import.meta.env.DEV ? 'http://127.0.0.1:5000' : '';
     this.fetchCaptcha()
   },
   methods: {
     async fetchCaptcha() {
       try {
-        const res = await fetch('http://localhost:5000/captcha')
+        const res = await fetch(`${this.backendBase}/captcha`)
         const data = await res.json()
         if (res.ok && data.success) {
           this.captchaId = data.data.captchaId
@@ -93,7 +95,7 @@ export default {
 
       try {
         const hashedPassword = await hashPassword(this.password)
-        const response = await fetch('http://localhost:5000/register', {
+        const response = await fetch(`${this.backendBase}/register`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'

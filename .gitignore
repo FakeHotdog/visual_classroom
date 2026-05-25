@@ -1,12 +1,17 @@
 # 忽略 flask 目录下的所有文件和文件夹
 *
 
-# 允许跟踪 .gitignore 文件本身
 !.gitignore
+!README.md
+!LICENSE
 
 # 允许跟踪 WeChatProgram 整个文件夹
 !WeChatProgram/
 !WeChatProgram/**
+
+# 忽略微信小程序特有的本地配置文件
+WeChatProgram/project.config.json
+WeChatProgram/project.private.config.json
 
 # 允许跟踪 web-classroom 文件夹本身（才能进得去里面）
 !web-classroom/

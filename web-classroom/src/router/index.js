@@ -5,6 +5,7 @@ import { createRouter, createWebHashHistory } from 'vue-router'
 import Login from '../views/Login.vue'
 import Register from '../views/Register.vue'
 import Home from '../views/Home.vue'
+import Edit from '../views/Edit.vue'
 
 // 路由配置
 const routes = [
@@ -15,6 +16,11 @@ const routes = [
     path: '/home', 
     component: Home,
     meta: { requiresAuth: true } // 加上这个标志，代表该页面需要拦截检查
+  },
+  { 
+    path: '/edit', 
+    component: Edit,
+    meta: { requiresAuth: true }
   }
 ]
 
@@ -23,6 +29,8 @@ const router = createRouter({
   history: createWebHashHistory(), // 使用Hash模式，打包后可以直接打开
   routes
 })
+
+const backendBase = import.meta.env.DEV ? 'http://127.0.0.1:5000' : '';
 
 router.beforeEach(async (to, from, next) => {
   // 检查目标页面是否需要登录
@@ -37,7 +45,7 @@ router.beforeEach(async (to, from, next) => {
     } else {
       // 2. 本地有 token，咱们向后端验证一下这个 token 是否真的有效、是否被篡改或过期
       try {
-        const response = await fetch('http://localhost:5000/user/info', {
+        const response = await fetch(`${backendBase}/user/info`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }

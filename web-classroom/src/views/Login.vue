@@ -32,6 +32,8 @@
 </template>
 
 <script>
+import { inject } from 'vue';
+
 async function hashPassword(pwd) {
   const msgBuffer = new TextEncoder().encode(pwd);
   const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
@@ -47,16 +49,19 @@ export default {
       captchaCode: '',
       captchaId: '',
       captchaImage: '',
-      message: ''
+      message: '',
+      backendBase: ''
     }
   },
   mounted() {
+    // 兼容 Options API 的全局注入拿取
+    this.backendBase = import.meta.env.DEV ? 'http://127.0.0.1:5000' : '';
     this.fetchCaptcha()
   },
   methods: {
     async fetchCaptcha() {
       try {
-        const res = await fetch('http://localhost:5000/captcha')
+        const res = await fetch(`${this.backendBase}/captcha`)
         const data = await res.json()
         if (res.ok && data.success) {
           this.captchaId = data.data.captchaId
@@ -83,7 +88,7 @@ export default {
 
       try {
         const hashedPassword = await hashPassword(this.password)
-        const response = await fetch('http://localhost:5000/login', {
+        const response = await fetch(`${this.backendBase}/login`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
