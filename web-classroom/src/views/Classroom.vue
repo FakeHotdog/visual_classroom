@@ -26,16 +26,16 @@
     <div v-if="currentTab === 'seats'" class="tab-content seats-tab">
       <div class="classroom-wrap">
         <!-- 教室背景 -->
-        <img class="bg-img" src="https://cdn.jsdelivr.net/gh/FakeHotdog/classroom-img/bg.jpg" mode="widthFix" />
+        <img class="bg-img" src="/bg.jpg" mode="widthFix" />
 
         <!-- 座位网格 -->
         <div class="seat-grid">
           <div v-for="(seat, index) in seats" :key="index" class="seat-item" @click="selectSeat(index)"
             :class="{ selected: selectedIndex === index }">
             <img v-if="!seat.isOccupied" class="desk"
-              src="https://cdn.jsdelivr.net/gh/FakeHotdog/classroom-img/desk.png" mode="widthFix" />
+              src="/desk.png" mode="widthFix" />
             <img v-else class="student"
-              :src="seat.gender === '女' ? 'https://cdn.jsdelivr.net/gh/FakeHotdog/classroom-img/girl.png' : 'https://cdn.jsdelivr.net/gh/FakeHotdog/classroom-img/boy.png'"
+              :src="seat.gender === '女' ? '/girl.png' : '/boy.png'"
               mode="widthFix" />
             <div class="name-wrap">
               <span v-if="seat.isOccupied" class="seat-name">{{ seat.nickname }}</span>
@@ -165,7 +165,7 @@ const route = useRoute();
 const router = useRouter();
 
 const backendBase = inject('backendBase');
-const defaultAvatar = 'https://cdn.jsdelivr.net/gh/FakeHotdog/classroom-img/default-avatar.jpg';
+const defaultAvatar = '/default-avatar.jpg';
 
 const getAuthHeaders = () => {
   return {
@@ -186,10 +186,10 @@ const isClassOwner = ref(false);
 const selectedIndex = ref(null);
 
 const tabs = [
-  { id: 'seats', name: '时空教室', icon: 'https://cdn.jsdelivr.net/gh/FakeHotdog/classroom-img/icon1.png' },
-  { id: 'chat', name: '班级私信', icon: 'https://cdn.jsdelivr.net/gh/FakeHotdog/classroom-img/icon2.png' },
-  { id: 'story', name: '班级故事', icon: 'https://cdn.jsdelivr.net/gh/FakeHotdog/classroom-img/icon3.png' },
-  { id: 'manage', name: '班级管理', icon: 'https://cdn.jsdelivr.net/gh/FakeHotdog/classroom-img/icon4.png' }
+  { id: 'seats', name: '时空教室', icon: '/icon1.png' },
+  { id: 'chat', name: '班级私信', icon: '/icon2.png' },
+  { id: 'story', name: '班级故事', icon: '/icon3.png' },
+  { id: 'manage', name: '班级管理', icon: '/icon4.png' }
 ];
 const currentTab = ref('seats');
 
@@ -231,7 +231,6 @@ onMounted(async () => {
   await loadSeatStatus();
   await loadConversations();
   await loadStories();
-  initWebSocket();
 });
 
 const loadUserProfile = async () => {
@@ -262,8 +261,8 @@ const copyClassId = () => {
 };
 
 const getGenderIcon = (gender) => {
-  if (gender === '女') return 'https://cdn.jsdelivr.net/gh/FakeHotdog/classroom-img/girl.png';
-  return 'https://cdn.jsdelivr.net/gh/FakeHotdog/classroom-img/boy.png';
+  if (gender === '女') return '/girl.png';
+  return '/boy.png';
 }
 
 // -------- 时空教室 --------

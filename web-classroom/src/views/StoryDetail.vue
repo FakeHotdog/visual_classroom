@@ -106,7 +106,7 @@ const getAuthHeaders = () => {
 
 // 格式化图片URL（拼接后端地址）
 const formatImageUrl = (url) => {
-  if (!url) return 'https://cdn.jsdelivr.net/gh/FakeHotdog/classroom-img/default-avatar.jpg';
+  if (!url) return '/default-avatar.jpg';
   if (url.startsWith('http')) return url;
   return backendBase + url;
 };

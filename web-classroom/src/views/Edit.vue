@@ -99,7 +99,7 @@ const fileInput = ref(null);
 
 const backendBase = inject('backendBase');
 const showAlert = inject('showAlert');
-const defaultAvatar = 'https://cdn.jsdelivr.net/gh/FakeHotdog/classroom-img/default-avatar.jpg';
+const defaultAvatar = '/default-avatar.jpg';
 
 const identityList = ['学生', '教师', '其他'];
 const genderList = ['男', '女', '保密'];

@@ -30,7 +30,7 @@ const route = useRoute();
 const router = useRouter();
 
 const backendBase = inject('backendBase');
-const defaultAvatar = 'https://cdn.jsdelivr.net/gh/FakeHotdog/classroom-img/default-avatar.jpg';
+const defaultAvatar = '/default-avatar.jpg';
 const showAlert = inject('showAlert');
 
 const targetUserId = ref(route.query.targetUserId);

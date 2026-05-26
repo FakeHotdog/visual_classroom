@@ -87,7 +87,7 @@ const showAlert = inject('showAlert');
 const showConfirm = inject('showConfirm');
 const showPrompt = inject('showPrompt');
 // 默认头像
-const defaultAvatar = 'https://cdn.jsdelivr.net/gh/FakeHotdog/classroom-img/default-avatar.jpg';
+const defaultAvatar = '/default-avatar.jpg';
 
 const userInfo = ref({
   id: '',

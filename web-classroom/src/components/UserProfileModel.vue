@@ -63,7 +63,7 @@
 import { ref, inject, computed, watch } from 'vue';
 
 const backendBase = inject('backendBase');
-const defaultAvatar = 'https://cdn.jsdelivr.net/gh/FakeHotdog/classroom-img/default-avatar.jpg';
+const defaultAvatar = '/default-avatar.jpg';
 
 // ✅ 和 CustomModal 完全一样的 props 定义
 const props = defineProps({

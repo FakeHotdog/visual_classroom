@@ -25,7 +25,7 @@ web-classroom/*
 !web-classroom/public/
 !web-classroom/public/**
 !web-classroom/index.html
-# 不能有app_h5.py，因为里面包含密码等敏感信息，不应该被提交到版本库中
+!web-classroom/app_h5.py
 !web-classroom/package.json
 !web-classroom/package-lock.json
 !web-classroom/vite.config.js
