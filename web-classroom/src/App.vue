@@ -22,7 +22,7 @@ import { provide, ref } from 'vue';
 import CustomModal from './components/CustomPrompt.vue';
 import UserProfileModal from './components/UserProfileModel.vue';
 
-const backendBase = import.meta.env.DEV ? 'http://127.0.0.1:5000' : '';
+const backendBase = 'http://localhost:5000';
 provide('backendBase', backendBase);
 
 const modalVisible = ref(false);

@@ -12,7 +12,12 @@
     <div class="tab-bar">
       <div v-for="tab in tabs" :key="tab.id" :class="['tab-item', { active: currentTab === tab.id }]"
         @click="currentTab = tab.id">
-        <img :src="tab.icon" class="tab-icon" />
+        <div class="tab-icon-wrapper">
+          <img :src="tab.icon" class="tab-icon" />
+          <div 
+            v-if="tab.id === 'chat' && unreadTotal > 0" class="red-dot"
+          ></div>
+        </div>
         <span>{{ tab.name }}</span>
       </div>
     </div>
@@ -52,7 +57,26 @@
 
     <!-- 班级私信 -->
     <div v-if="currentTab === 'chat'" class="tab-content chat-tab">
-      
+      <div class="conversation-list">
+        <div v-for="conv in conversations" :key="conv.userId" class="conversation-item"
+          @click="goToChatDetail(conv.userId)">
+          <img :src="conv.avatarUrl ? backendBase + conv.avatarUrl : defaultAvatar" class="conversation-avatar" />
+          <div class="conversation-info">
+            <div class="conversation-top">
+              <span class="conversation-name">{{ conv.nickname }}</span>
+              <span class="conversation-time">{{ formatTime(conv.lastTime) }}</span>
+            </div>
+            <div class="conversation-bottom">
+              <span class="last-message">{{ conv.lastMessage }}</span>
+              <span v-if="conv.unreadCount > 0" class="unread-badge">{{ conv.unreadCount }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div v-if="conversations.length === 0" class="empty-state">
+          暂无私信，点击成员头像开始聊天吧！
+        </div>
+      </div>
     </div>
 
     <!-- 班级故事 -->
@@ -116,6 +140,7 @@
           </div>
           <div class="member-actions">
             <button class="info-btn" @click="viewMemberInfo(member.id)">资料</button>
+            <button class="chat-btn" @click="goToChatDetail(member.id)">发消息</button>
             <!-- 群主踢人 (不能踢自己) -->
             <button v-if="isClassOwner && !member.isOwner" @click="kickMember(member.id, member.nickname)"
               class="kick-btn">
@@ -133,7 +158,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, nextTick, inject } from 'vue';
+import { ref, onMounted, onUnmounted, nextTick, inject, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
 const route = useRoute();
@@ -178,11 +203,8 @@ const seats = ref(Array.from({ length: 100 }, () => ({
 const mySeatIndex = ref(null);
 
 // -------- 班级私信数据 --------
-const chatMessages = ref([]);
-const newChatMessage = ref('');
-const chatScrollContainer = ref(null);
-let ws = null;
-let chatPage = 0;
+const conversations = ref([]);
+const unreadTotal = ref(0);
 
 // -------- 班级故事数据 --------
 const stories = ref([]);
@@ -207,7 +229,7 @@ onMounted(async () => {
 
   // 初始加载所有Tab数据，或者等到切换时再加载
   await loadSeatStatus();
-  await loadChatHistory();
+  await loadConversations();
   await loadStories();
   initWebSocket();
 });
@@ -228,12 +250,6 @@ const loadUserProfile = async () => {
     console.error('获取个人信息失败', err);
   }
 };
-
-onUnmounted(() => {
-  if (ws) {
-    ws.close();
-  }
-});
 
 const goBack = () => {
   router.push('/home');
@@ -276,7 +292,7 @@ const loadSeatStatus = async () => {
 // 选择座位
 const selectSeat = (index) => {
   const seat = seats.value[index];
-  
+
   // 如果是已占用的座位，查看对方信息
   if (seat.isOccupied) {
     showUserProfile(seat.userId);
@@ -292,20 +308,20 @@ const takeSeat = async () => {
   if (selectedIndex.value === null) return;
 
   const confirm = await showConfirm(
-    '入座', 
-    mySeatIndex.value === null 
-      ? `确认要坐在这个座位吗？` 
+    '入座',
+    mySeatIndex.value === null
+      ? `确认要坐在这个座位吗？`
       : `确认要换到这个座位吗？之前的座位会自动离开。`
   );
-  
-  if(confirm) {
+
+  if (confirm) {
     try {
       const res = await fetch(`${backendBase}/api/take_seat`, {
         method: 'POST',
         headers: getAuthHeaders(),
-        body: JSON.stringify({ 
-          classId: classId.value, 
-          seatIndex: selectedIndex.value 
+        body: JSON.stringify({
+          classId: classId.value,
+          seatIndex: selectedIndex.value
         })
       });
       const data = await res.json();
@@ -315,7 +331,7 @@ const takeSeat = async () => {
       } else {
         await showAlert('失败', data.message);
       }
-    } catch(err) {
+    } catch (err) {
       await showAlert('错误', '请求失败');
     }
   }
@@ -342,33 +358,39 @@ const leaveSeat = async () => {
 }
 
 // -------- 班级私信 --------
-const loadChatHistory = async () => {
-  
+const loadConversations = async () => {
+  try {
+    const res = await fetch(`${backendBase}/api/get_conversations`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify({
+        classId: classId.value
+      })
+    });
+    const data = await res.json();
+    if (data.success) {
+      conversations.value = data.data;
+      unreadTotal.value = conversations.value.reduce((total, conv) => total + conv.unreadCount, 0);
+    }
+  } catch (err) {
+    console.error("加载会话列表失败", err);
+  }
 };
 
-const initWebSocket = () => {
-  
-}
-
-const sendChatMessage = () => {
-  const content = newChatMessage.value.trim();
-  if (!content || !ws || ws.readyState !== WebSocket.OPEN) return;
-
-  ws.send(JSON.stringify({
-    action: "chat",
-    classId: classId.value,
-    content: content
-  }));
-  newChatMessage.value = '';
-}
-
-const scrollToBottom = () => {
-  nextTick(() => {
-    if (chatScrollContainer.value) {
-      chatScrollContainer.value.scrollTop = chatScrollContainer.value.scrollHeight;
+const goToChatDetail = (targetUserId) => {
+  router.push({
+    path: '/ChatDetail',
+    query: {
+      targetUserId: targetUserId,
+      classId: classId.value
     }
   });
-}
+};
+
+const formatTime = (timestamp) => {
+  const date = new Date(timestamp * 1000);
+  return `${date.getMonth()+1}/${date.getDate()} ${date.getHours()}:${String(date.getMinutes()).padStart(2, '0')}`;
+};
 
 // -------- 班级故事 --------
 const loadStories = async () => {
@@ -498,6 +520,21 @@ const quitClass = async () => {
 const viewMemberInfo = async (userId) => {
   await showUserProfile(userId);
 };
+
+watch(currentTab, async (newTab) => {
+  if (newTab === 'seats') {
+    await loadSeatStatus();
+  } else if (newTab === 'chat') {
+    await loadConversations();
+  } else if (newTab === 'story') {
+    storyPage.value = 0;
+    hasMoreStories.value = true;
+    await loadStories();
+  } else if (newTab === 'manage') {
+    await loadClassMembers();
+  }
+});
+
 </script>
 
 <style scoped>
@@ -566,7 +603,21 @@ const viewMemberInfo = async (userId) => {
   border-bottom-color: #1989fa;
   font-weight: bold;
 }
+.tab-icon-wrapper {
+  position: relative;
+  display: inline-block;
+}
 
+.red-dot {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 10px;
+  height: 10px;
+  background-color: #ff4d4f;
+  border-radius: 50%;
+  border: 2px solid #fff;
+}
 .tab-icon {
   width: 24px;
   height: 24px;
@@ -588,8 +639,10 @@ const viewMemberInfo = async (userId) => {
 .classroom-wrap {
   position: relative;
   width: 100%;
-  max-width: 768px; /* 可选：电脑端最大宽度，防止超大屏太夸张 */
-  margin: 0 auto; /* 电脑端居中显示 */
+  max-width: 768px;
+  /* 可选：电脑端最大宽度，防止超大屏太夸张 */
+  margin: 0 auto;
+  /* 电脑端居中显示 */
   overflow: hidden;
 }
 
@@ -605,15 +658,18 @@ const viewMemberInfo = async (userId) => {
   right: 2%;
   display: grid;
   grid-template-columns: 1fr 1fr 1fr 1fr;
-  gap: 2vw 1.333vw; /* 原7.5px 5px → 375px屏幕下 2vw=7.5px */
+  gap: 2vw 1.333vw;
+  /* 原7.5px 5px → 375px屏幕下 2vw=7.5px */
 }
 
 /* 中间过道效果 - 完全还原 */
 .seat-grid .seat-item:nth-child(4n+2) {
-  margin-right: 8vw; /* 原30px → 375px屏幕下 8vw=30px */
+  margin-right: 8vw;
+  /* 原30px → 375px屏幕下 8vw=30px */
 }
+
 .seat-grid .seat-item:nth-child(4n+3) {
-  margin-left: 8vw; 
+  margin-left: 8vw;
 }
 
 .seat-item {
@@ -622,21 +678,25 @@ const viewMemberInfo = async (userId) => {
   flex-direction: column;
   align-items: center;
   z-index: 2;
-  height: 37.333vw; /* 原140px → 375px屏幕下 37.333vw=140px */
+  height: 37.333vw;
+  /* 原140px → 375px屏幕下 37.333vw=140px */
   cursor: pointer;
 }
 
 /* 选中状态高亮 */
 .seat-item.selected .desk {
-  box-shadow: 0 0 2.666vw #d95374; /* 原10px → 2.666vw */
-  border-radius: 2.133vw; /* 原8px → 2.133vw */
+  box-shadow: 0 0 2.666vw #d95374;
+  /* 原10px → 2.666vw */
+  border-radius: 2.133vw;
+  /* 原8px → 2.133vw */
 }
 
 /* 空课桌：大小居中 */
 .desk {
   position: absolute;
   top: 0px;
-  width: 20vw; /* 原75px → 375px屏幕下 20vw=75px */
+  width: 20vw;
+  /* 原75px → 375px屏幕下 20vw=75px */
   z-index: 1;
 }
 
@@ -650,61 +710,81 @@ const viewMemberInfo = async (userId) => {
 
 /* 名字固定占位，永远居中 */
 .name-wrap {
-  height: 5.333vw; /* 原20px → 5.333vw */
+  height: 5.333vw;
+  /* 原20px → 5.333vw */
   line-height: 5.333vw;
   text-align: center;
-  margin-top: 11.333vw; /* 原42.5px → 11.333vw */
+  margin-top: 11.333vw;
+  /* 原42.5px → 11.333vw */
   z-index: 3;
+  width: 20vw;
+  max-width: 150px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .seat-name {
-  font-size: 3.6vw; /* 原13.5px → 3.6vw */
+  font-size: 3.6vw;
+  /* 原13.5px → 3.6vw */
   color: #fff;
   background-color: #ff922b;
-  padding: 0.533vw 1.6vw; /* 原2px 6px → 0.533vw 1.6vw */
-  border-radius: 2.666vw; /* 原10px → 2.666vw */
+  padding: 0.533vw 1.6vw;
+  /* 原2px 6px → 0.533vw 1.6vw */
+  border-radius: 2.666vw;
+  /* 原10px → 2.666vw */
   white-space: nowrap;
+  overflow: hidden;           /* 隐藏超出部分 */
+  text-overflow: ellipsis;   /* 超出显示 ... */
+  display: block;            /* 让省略号生效 */
+  max-width: 100%;           /* 不超过父容器 */
 }
 
 /* 底部按钮：完美居中 */
 .seat-btn-bar {
   position: fixed;
-  bottom: 8vw; /* 原30px → 8vw */
+  bottom: 8vw;
+  /* 原30px → 8vw */
   left: 5%;
   right: 5%;
-  max-width: 691px; /* 和classroom-wrap的max-width对应：768px * 0.9 */
+  max-width: 691px;
+  /* 和classroom-wrap的max-width对应：768px * 0.9 */
   margin: 0 auto;
   display: flex;
   justify-content: center;
-  gap: 5.333vw; /* 原20px → 5.333vw */
+  gap: 5.333vw;
+  /* 原20px → 5.333vw */
   z-index: 99;
 }
 
 .btn {
   width: 42%;
-  height: 10.666vw; /* 原40px → 10.666vw */
-  max-height: 48px; /* 可选：电脑端按钮最大高度 */
+  height: 10.666vw;
+  /* 原40px → 10.666vw */
+  max-height: 48px;
+  /* 可选：电脑端按钮最大高度 */
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 6.666vw; /* 原25px → 6.666vw */
-  font-size: 3.733vw; /* 原14px → 3.733vw */
+  border-radius: 6.666vw;
+  /* 原25px → 6.666vw */
+  font-size: 3.733vw;
+  /* 原14px → 3.733vw */
   border: 0;
   cursor: pointer;
 }
 
-.leave-btn { 
-  background: #eee; 
-  color: #333; 
+.leave-btn {
+  background: #eee;
+  color: #333;
 }
 
-.sit-btn { 
-  background: #d95374; 
-  color: #fff; 
+.sit-btn {
+  background: #d95374;
+  color: #fff;
 }
 
-.btn:disabled { 
-  background: #ccc !important; 
+.btn:disabled {
+  background: #ccc !important;
   cursor: not-allowed;
 }
 
@@ -713,45 +793,52 @@ const viewMemberInfo = async (userId) => {
   .seat-grid {
     gap: 15px 10px;
   }
+
   .seat-grid .seat-item:nth-child(4n+2) {
     margin-right: 60px;
   }
+
   .seat-grid .seat-item:nth-child(4n+3) {
     margin-left: 60px;
   }
+
   .seat-item {
     height: 280px;
   }
+
   .seat-item.selected .desk {
     box-shadow: 0 0 20px #d95374;
     border-radius: 16px;
   }
-  .desk, .student {
+
+  .desk,
+  .student {
     width: 150px;
   }
+
   .name-wrap {
     height: 40px;
     line-height: 40px;
     margin-top: 85px;
   }
+
   .seat-name {
     font-size: 27px;
     padding: 4px 12px;
     border-radius: 20px;
   }
+
   .seat-btn-bar {
     bottom: 60px;
     gap: 40px;
   }
+
   .btn {
     height: 80px;
     border-radius: 50px;
     font-size: 28px;
   }
 }
-
-/* --- 聊天 --- */
-
 
 /* --- 故事 --- */
 .story-tab {
@@ -963,6 +1050,16 @@ const viewMemberInfo = async (userId) => {
   cursor: pointer;
 }
 
+.chat-btn {
+  background: white;
+  color: #1989fa;
+  border: 1px solid #1989fa;
+  border-radius: 4px;
+  padding: 5px 12px;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
 .danger-zone {
   margin-top: 30px;
   text-align: center;
@@ -975,5 +1072,74 @@ const viewMemberInfo = async (userId) => {
   padding: 12px;
   border-radius: 20px;
   font-size: 1rem;
+}
+
+/* 会话列表样式 */
+.conversation-list {
+  padding: 0;
+}
+
+.conversation-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 15px;
+  background: white;
+  border-bottom: 1px solid #eee;
+  cursor: pointer;
+}
+
+.conversation-avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+}
+
+.conversation-info {
+  flex: 1;
+}
+
+.conversation-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.conversation-name {
+  font-size: 1rem;
+  font-weight: bold;
+}
+
+.conversation-time {
+  font-size: 0.8rem;
+  color: #999;
+}
+
+.conversation-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.last-message {
+  font-size: 0.9rem;
+  color: #666;
+  max-width: 250px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.unread-badge {
+  min-width: 20px;
+  height: 20px;
+  line-height: 20px;
+  text-align: center;
+  background: #ff4d4f;
+  color: white;
+  border-radius: 10px;
+  font-size: 0.7rem;
+  padding: 0 6px;
 }
 </style>

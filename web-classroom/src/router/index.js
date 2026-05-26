@@ -9,6 +9,7 @@ import Edit from '../views/Edit.vue'
 import Classroom from '../views/Classroom.vue'
 import PublishStory from '../views/PublishStory.vue'
 import StoryDetail from '../views/StoryDetail.vue'
+import ChatDetail from '../views/ChatDetail.vue'
 
 // 路由配置
 const routes = [
@@ -38,6 +39,11 @@ const routes = [
   {
     path: '/StoryDetail',
     component: StoryDetail,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/ChatDetail',
+    component: ChatDetail,
     meta: { requiresAuth: true }
   }
 ]
