@@ -64,7 +64,7 @@
           <div class="conversation-info">
             <div class="conversation-top">
               <span class="conversation-name">{{ conv.nickname }}</span>
-              <span class="conversation-time">{{ formatTime(conv.lastTime) }}</span>
+              <span class="conversation-time" v-if="conv.lastTime > 0">{{ formatTime(conv.lastTime) }}</span>
             </div>
             <div class="conversation-bottom">
               <span class="last-message">{{ conv.lastMessage }}</span>
@@ -329,12 +329,12 @@ const takeSeat = async () => {
         showAlert('成功', '入座成功');
       } else {
         await showAlert('失败', data.message);
+        await loadSeatStatus();
       }
     } catch (err) {
       await showAlert('错误', '请求失败');
     }
   }
-  await loadSeatStatus();
   selectedIndex.value = null;
 };
 

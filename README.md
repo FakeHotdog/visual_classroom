@@ -38,3 +38,29 @@ You can now use this HTTPS URL in your frontend app (like WeChat Mini Program) t
 ### ⚠️ Important Notes
 - The URL is **temporary**. Every time you stop and restart the `cloudflared` command, a new random URL will be generated.
 - You must keep **both** terminal windows open (one for Flask, one for cloudflared) for the tunnel to work.
+
+## Running the Application in Windows
+
+### Build distribution package
+'''powershell
+npm run build
+'''
+
+### Run python file
+For debugging, you can run: 
+
+'''powershell
+python app_h5.py
+'''
+
+For production: 
+
+'''powershell
+pythonw app_h5.py prod *> app.log
+'''
+
+For killing the server: 
+
+'''powershell
+taskkill /F /IM pythonw.exe
+'''

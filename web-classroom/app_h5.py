@@ -1,7 +1,8 @@
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
-from flask_sock import Sock
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 import jwt
 from datetime import datetime, timedelta, timezone
 from sqlalchemy import func
@@ -9,23 +10,22 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import uuid
 import time
 import random
-from io import BytesIO
 import base64
 from functools import wraps
 import os
 from dotenv import load_dotenv
 from werkzeug.utils import secure_filename
 from captcha.image import ImageCaptcha
-from flask_limiter import Limiter
-from flask_limiter.util import get_remote_address
+from waitress import serve
+from apscheduler.schedulers.background import BackgroundScheduler
+from apscheduler.triggers.cron import CronTrigger
 import mimetypes
+import sys
 
 app = Flask(__name__)
 # 配置 JSON 响应在非 ASCII 字符时不进行 unicode 编码，保持正常中文显示
 app.config['JSON_AS_ASCII'] = False
 CORS(app)
-sock = Sock(app)
-user_clients = {}
 
 # ===================== 限流配置（防恶意刷接口） =====================
 limiter = Limiter(
@@ -42,7 +42,10 @@ def ratelimit_handler(e):
 # 数据库配置（使用SQLite，不需要额外安装数据库）
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///classmate.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
+app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+    'connect_args': {'check_same_thread': False},
+    'pool_pre_ping': True
+} # SQLite特有配置，允许多线程访问，并自动检测断开连接
 mimetypes.add_type('image/jpeg', '.jpg')
 mimetypes.add_type('image/jpeg', '.jpeg')
 mimetypes.add_type('image/png', '.png')
@@ -228,8 +231,6 @@ def login():
     if not captcha_code:
         return error_response('请输入验证码')
         
-    print(f"验证码:{captcha_code}, text:{CAPTCHA_STORE.get(captcha_id)}")
-
     # 3. 校验验证码
     if not verify_captcha(captcha_id, captcha_code):
         return error_response('验证码错误或已过期')
@@ -246,7 +247,7 @@ def login():
         'exp': datetime.now(timezone.utc) + timedelta(days=7)
     }, JWT_SECRET, algorithm=JWT_ALGORITHM)
 
-    # 6. 返回登录成功结果（和你前端期望的格式完全一致）
+    # 6. 返回登录成功结果和用户信息（前端会存Token和展示昵称）
     return success_response(
         f'欢迎你，{user.nickname}',
         {
@@ -852,7 +853,7 @@ def delete_story(current_user):
                     if os.path.exists(local_path) and os.path.isfile(local_path):
                         os.remove(local_path)
                 except OSError as e:
-                    print(f"删除图片失败 {local_path}: {e}")
+                    pass
                 
     db.session.delete(story)
     db.session.commit()
@@ -897,36 +898,39 @@ def get_story_detail(current_user):
     
     return success_response("获取成功", info)
 
-# 1. 获取我的私信会话列表
+# 1. 获取班级内的所有会话列表（每个成员一条，包含最后消息和未读数量）
 @app.route('/api/get_conversations', methods=['POST'])
 @token_required
 def get_conversations(current_user):
     data = request.get_json()
-    classId = data.get('classId')  # 你说得对！必须传班级ID
+    classId = data.get('classId')
     userId = current_user.id
 
     if not classId:
         return error_response("缺少班级ID")
 
-    # 1. 查询当前用户在这个班级的所有聊天记录
+    # 查询班级信息，获取所有成员ID
+    cls = ClassObj.query.get(classId)
+    if not cls:
+        return error_response("班级不存在")
+    
+    # 解析成员ID列表
+    all_member_ids = [int(id_str) for id_str in cls.members.split(',') if id_str.strip()]
+    
+    # 查询所有聊天记录
     all_messages = ChatMessage.query.filter(
-        ChatMessage.classId == classId,  # 只查本班
+        ChatMessage.classId == classId,
         (ChatMessage.senderId == userId) | (ChatMessage.receiverId == userId)
     ).order_by(ChatMessage.createTime.desc()).all()
 
-    # 2. 手动分组：每个用户只保留最新一条消息
+    # 每个用户只保留最新一条消息
     conversation_map = {}
     for msg in all_messages:
         other_id = msg.receiverId if msg.senderId == userId else msg.senderId
         if other_id not in conversation_map:
             conversation_map[other_id] = msg
 
-    # 3. 批量获取用户信息
-    other_ids = list(conversation_map.keys())
-    users = User.query.filter(User.id.in_(other_ids)).all() if other_ids else []
-    user_dict = {u.id: u for u in users}
-
-    # 4. 统计未读数量（本班）
+    # 统计未读数量
     unread_data = db.session.query(
         ChatMessage.senderId,
         func.count(ChatMessage.id)
@@ -937,18 +941,30 @@ def get_conversations(current_user):
     ).group_by(ChatMessage.senderId).all()
     unread_dict = {uid: cnt for uid, cnt in unread_data}
 
-    # 5. 组装返回
+    # ========== 第四步：批量获取所有成员的用户信息 ==========
+    users = User.query.filter(User.id.in_(all_member_ids)).all()
+    user_dict = {u.id: u for u in users}
+
+    # ========== 第五步：遍历所有成员生成结果（核心改动） ==========
     result = []
-    for other_id, msg in conversation_map.items():
-        u = user_dict.get(other_id)
+    for id in all_member_ids:
+        u = user_dict.get(id)
+        latest_msg = conversation_map.get(id)
+        
         result.append({
-            "userId": other_id,
+            "userId": id,
             "nickname": u.nickname if u else "未知",
             "avatarUrl": u.avatarUrl if u else "",
-            "lastMessage": msg.content,
-            "lastTime": msg.createTime,
-            "unreadCount": unread_dict.get(other_id, 0)
+            # 有聊天记录显示最后一条消息，没有显示"暂无消息"
+            "lastMessage": latest_msg.content if latest_msg else "暂无消息",
+            # 有聊天记录显示时间，没有显示0
+            "lastTime": latest_msg.createTime if latest_msg else 0,
+            # 未读数量
+            "unreadCount": unread_dict.get(id, 0)
         })
+
+    # 有消息的排在前面，没消息的排在后面
+    result.sort(key=lambda x: x["lastTime"], reverse=True)
 
     return success_response("获取成功", result)
 
@@ -998,99 +1014,151 @@ def get_chat_history(current_user):
     result.reverse()  # 旧消息在前
     return success_response("获取成功", result)
 
-# 3. WebSocket私信连接
-@sock.route('/ws/private_chat')
-def private_chat_ws(ws):
-    import json
-    user_id = None
+# 3. 发送消息（前端直接调用这个接口，替代原来WebSocket的发送逻辑）
+@app.route('/api/send_message', methods=['POST'])
+@token_required
+def send_message(current_user):
+    data = request.get_json()
+    receiver_id = data.get('receiverId')
+    content = data.get('content', '').strip()
+    classId = data.get('classId')
     
-    try:
-        # 第一个消息：鉴权
-        auth_msg = ws.receive()
-        if not auth_msg:
-            return
-        
-        data = json.loads(auth_msg)
-        token = data.get('token')
-        
-        # 验证token
-        decoded = jwt.decode(token, JWT_SECRET, algorithms=JWT_ALGORITHM)
-        user_id = decoded['user_id']
-        current_user = db.session.get(User, user_id)
-        if not current_user:
-            ws.send(json.dumps({"type": "error", "content": "认证失败"}))
-            return
-        
-        # 注册连接：用户ID -> WebSocket连接
-        if user_id not in user_clients:
-            user_clients[user_id] = set()
-        user_clients[user_id].add(ws)
-        
-        # 循环接收消息
-        while True:
-            msg = ws.receive()
-            if not msg:
-                break
-            
-            msg_data = json.loads(msg)
-            receiver_id = msg_data.get('receiverId')
-            content = msg_data.get('content', '').strip()
-            classId = msg_data.get('classId')
+    if not receiver_id or not content or not classId:
+        return error_response("缺少必要参数")
+    
+    # 保存消息到数据库（和原来WebSocket的逻辑完全一样）
+    new_msg = ChatMessage(
+        senderId=current_user.id,
+        receiverId=receiver_id,
+        classId=classId,
+        content=content,
+        createTime=int(time.time()),
+        type='text',
+        isRead=False
+    )
+    db.session.add(new_msg)
+    db.session.commit()
+    
+    # 返回消息信息，前端直接显示
+    return success_response("发送成功", {
+        "id": new_msg.id,
+        "senderId": current_user.id,
+        "content": content,
+        "createTime": new_msg.createTime,
+        "isOwner": True
+    })
 
-            if not receiver_id or not content:
-                continue
+# 4. 拉取新消息（轮询专用接口）
+@app.route('/api/pull_new_messages', methods=['POST'])
+@token_required
+def pull_new_messages(current_user):
+    data = request.get_json()
+    targetUserId = data.get('targetUserId')
+    classId = data.get('classId')
+    lastMessageId = data.get('lastMessageId', 0)  # 前端传最后一条已收到的消息ID
+    
+    if not targetUserId or not classId:
+        return error_response("缺少必要参数")
+    
+    # 查询比lastMessageId大的所有新消息
+    new_messages = ChatMessage.query.filter(
+        ChatMessage.classId == classId,
+        ChatMessage.senderId == targetUserId,
+        ChatMessage.receiverId == current_user.id,
+        ChatMessage.id > lastMessageId
+    ).order_by(ChatMessage.createTime.asc()).all()
+    
+    # 标记这些消息为已读
+    if new_messages:
+        ChatMessage.query.filter(
+            ChatMessage.id.in_([msg.id for msg in new_messages])
+        ).update({"isRead": True}, synchronize_session=False)
+        db.session.commit()
+    
+    # 组装结果
+    result = []
+    for m in new_messages:
+        result.append({
+            "id": m.id,
+            "senderId": m.senderId,
+            "content": m.content,
+            "createTime": m.createTime,
+            "isOwner": False
+        })
+    
+    return success_response("获取成功", result)
+
+# ===================== 数据库维护核心函数 =====================
+def database_maintenance():
+    """每周执行一次数据库维护"""
+    with app.app_context():
+        try:
+            # 1. 删除14天以上的私聊消息
+            fourteen_days_ago = datetime.now() - timedelta(days=14)
+            fourteen_days_ago_ts = int(fourteen_days_ago.timestamp())
+            old_chat_count = ChatMessage.query.filter(ChatMessage.createTime < fourteen_days_ago_ts).delete()
             
-            # 保存消息到数据库
-            new_msg = ChatMessage(
-                senderId=user_id,
-                receiverId=receiver_id,
-                classId=classId,
-                content=content,
-                createTime=int(time.time()),
-                type='text',
-                isRead=False
-            )
-            db.session.add(new_msg)
+            # 2. 删除三个月以上的班级故事（同时删除关联图片）
+            three_months_ago = datetime.now() - timedelta(days=90)
+            old_stories = ClassStory.query.filter(ClassStory.createTime < three_months_ago).all()
+            old_story_count = len(old_stories)
+            # 先删除故事关联的图片文件
+            for story in old_stories:
+                if story.images and story.images.strip():
+                    image_urls = [img.strip() for img in story.images.split(",") if img.strip()]
+                    for img_url in image_urls:
+                        if "/static/uploads/" in img_url:
+                            filename = img_url.split("/static/uploads/", 1)[1]
+                            local_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                            try:
+                                if os.path.exists(local_path) and os.path.isfile(local_path):
+                                    os.remove(local_path)
+                            except Exception as e:
+                                pass
+            # 删除故事数据
+            ClassStory.query.filter(ClassStory.createTime < three_months_ago).delete()
+
+            # 清理1年以上未登录的账户牵扯太多，暂且不做。
             db.session.commit()
             
-            # 构造广播数据
-            broadcast_data = json.dumps({
-                "type": "chat",
-                "id": new_msg.id,
-                "senderId": user_id,
-                "content": content,
-                "createTime": new_msg.createTime,
-                "isOwner": False
-            })
+            # 打印维护日志
+            log_msg = (
+                f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] 数据库维护完成：\n"
+                f"  - 删除14天以上私聊消息: {old_chat_count} 条\n"
+                f"  - 删除3个月以上班级故事: {old_story_count} 条\n"
+            )
+            print(log_msg, file=sys.stdout)
             
-            # 发送给接收者（如果在线）
-            if receiver_id in user_clients:
-                for client in list(user_clients[receiver_id]):
-                    try:
-                        client.send(broadcast_data)
-                    except Exception:
-                        user_clients[receiver_id].remove(client)
-            
-            # 发送给自己（同步显示）
-            self_data = json.dumps({
-                "type": "chat",
-                "id": new_msg.id,
-                "senderId": user_id,
-                "content": content,
-                "createTime": new_msg.createTime,
-                "isOwner": True
-            })
-            ws.send(self_data)
+        except Exception as e:
+            db.session.rollback()
+            error_msg = f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] 数据库维护失败: {str(e)}"
+            print(error_msg, file=sys.stderr)
+
+# ===================== 配置定时任务 =====================
+def init_scheduler():
+    """初始化定时任务"""
+    # 创建后台调度器
+    scheduler = BackgroundScheduler(timezone='Asia/Shanghai')
     
+    # 添加每周日凌晨2点执行的维护任务
+    scheduler.add_job(
+        database_maintenance,
+        trigger=CronTrigger(day_of_week=0, hour=2, minute=0),  # 每周日 02:00
+        id='database_maintenance',
+        replace_existing=True
+    )
+    
+    # 启动调度器
+    try:
+        scheduler.start()
+        print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] 定时任务已启动，每周日凌晨2点执行数据库维护", file=sys.stdout)
     except Exception as e:
-        print("Private Chat WebSocket Error:", e)
-    finally:
-        # 清理连接
-        if user_id and user_id in user_clients:
-            if ws in user_clients[user_id]:
-                user_clients[user_id].remove(ws)
-            if not user_clients[user_id]:
-                del user_clients[user_id]
+        print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] 定时任务启动失败: {e}", file=sys.stderr)
+        # 非阻塞启动失败时，降级为应用启动时执行一次
+        database_maintenance()
+
+# ========== 初始化定时任务 ==========
+init_scheduler()
 
 # ===================== 前端资源路由（将dist目录作为静态文件根目录） =====================
 @app.route('/')
@@ -1103,4 +1171,7 @@ def static_proxy(path):
 
 # ===================== 启动服务器 =====================
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    if len(sys.argv) > 1 and sys.argv[1] == 'prod':
+        serve(app, host='0.0.0.0', port=5000, threads=8)
+    else:
+        app.run(host='0.0.0.0', port=5000, debug=True)

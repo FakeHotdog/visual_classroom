@@ -42,7 +42,8 @@ const myAvatar = ref('');
 const chatMessages = ref([]);
 const newChatMessage = ref('');
 const chatScrollContainer = ref(null);
-let ws = null;
+const lastMessageId = ref(0);
+let pollTimer = null;
 
 const getAuthHeaders = () => {
   return {
@@ -92,6 +93,9 @@ const loadChatHistory = async () => {
     const data = await res.json();
     if (data.success) {
       chatMessages.value = data.data;
+      if (chatMessages.value.length > 0) {
+        lastMessageId.value = chatMessages.value[chatMessages.value.length - 1].id;
+      }
       scrollToBottom();
     }
   } catch (err) {
@@ -99,49 +103,70 @@ const loadChatHistory = async () => {
   }
 };
 
-// 初始化WebSocket
-const initWebSocket = () => {
-  const tokenStr = localStorage.getItem('token');
-  if (!tokenStr) return;
-
-  const wsBase = backendBase.replace(/^http/, 'ws');
-  const wsUrl = `${wsBase}/ws/private_chat`;
-
-  ws = new WebSocket(wsUrl);
-
-  ws.onopen = () => {
-    ws.send(JSON.stringify({
-      token: tokenStr
-    }));
-  };
-
-  ws.onmessage = (event) => {
-    const msg = JSON.parse(event.data);
-    if (msg.type === 'chat') {
-      // 只显示和当前用户的消息
-      if (msg.senderId == targetUserId.value || msg.isOwner) {
-        chatMessages.value.push(msg);
-        scrollToBottom();
-      }
+const pullNewMessages = async () => {
+  try {
+    const res = await fetch(`${backendBase}/api/pull_new_messages`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify({
+        targetUserId: targetUserId.value,
+        classId: classId.value,
+        lastMessageId: lastMessageId.value
+      })
+    });
+    const data = await res.json();
+    if (data.success && data.data.length > 0) {
+      // 把新消息添加到聊天列表
+      chatMessages.value.push(...data.data);
+      // 更新最后一条消息ID
+      lastMessageId.value = data.data[data.data.length - 1].id;
+      scrollToBottom();
     }
-  };
-
-  ws.onclose = () => {
-    console.log("WebSocket connection closed.");
-  };
+  } catch (err) {
+    // 轮询失败静默处理，下一次自动重试
+    console.log("轮询新消息失败，下一次重试", err);
+  }
 };
 
 // 发送消息
-const sendChatMessage = () => {
+const sendChatMessage = async () => {
   const content = newChatMessage.value.trim();
-  if (!content || !ws || ws.readyState !== WebSocket.OPEN) return;
+  if (!content) return;
 
-  ws.send(JSON.stringify({
-    receiverId: targetUserId.value,
-    content: content,
-    classId: classId.value
-  }));
+  // 清空输入框（防止重复发送）
+  const tempContent = content;
   newChatMessage.value = '';
+
+  try {
+    const res = await fetch(`${backendBase}/api/send_message`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify({
+        receiverId: targetUserId.value,
+        content: tempContent,
+        classId: classId.value
+      })
+    });
+    const data = await res.json();
+    if (data.success) {
+      chatMessages.value.push(data.data);
+      scrollToBottom();
+      // 发送成功后立即拉取一次（减少延迟），还要把轮询重置一下，避免过快的连续发送导致消息丢失
+      setTimeout(pullNewMessages, 500);
+      if (pollTimer) {
+        clearInterval(pollTimer);
+      }
+      pollTimer = setInterval(pullNewMessages, 10000);
+    } else {
+      showAlert(`发送失败：${data.message}`);
+      newChatMessage.value = tempContent;
+    }
+  } catch (err) {
+    console.error("发送消息失败", err);
+    showAlert('网络异常，消息发送失败');
+    // 发送失败恢复输入框内容
+    newChatMessage.value = tempContent;
+  }
 };
 
 // 滚动到底部
@@ -159,14 +184,23 @@ const goBack = () => {
 };
 
 onMounted(() => {
+  if (!targetUserId.value || !classId.value) {
+    showAlert('聊天参数异常，请返回重试');
+    router.back();
+    return;
+  }
   loadTargetUserInfo();
   loadChatHistory();
-  initWebSocket();
+  if (pollTimer) {
+    clearInterval(pollTimer);
+  }
+  pollTimer = setInterval(pullNewMessages, 10000);
 });
 
 onUnmounted(() => {
-  if (ws) {
-    ws.close();
+  if (pollTimer) {
+    clearInterval(pollTimer);
+    pollTimer = null;
   }
 });
 </script>
