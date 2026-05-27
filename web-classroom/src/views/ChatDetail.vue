@@ -76,6 +76,7 @@ const loadTargetUserInfo = async () => {
     const userData = await userRes.json();
     if (userData.success) {
       myAvatar.value = userData.data.avatarUrl ? backendBase + userData.data.avatarUrl : defaultAvatar;
+      currentUserId.value = userData.data.id;
     }
   } catch (err) {
     console.error("加载用户信息失败", err);
@@ -152,6 +153,10 @@ const sendChatMessage = async () => {
       chatMessages.value.push(data.data);
       scrollToBottom();
       // 发送成功后立即拉取一次（减少延迟），还要把轮询重置一下，避免过快的连续发送导致消息丢失
+      if (targetUserId.value == currentUserId.value) {
+        // 如果是发给自己的消息，直接标记为已读，不需要轮询
+        return;
+      }
       setTimeout(pullNewMessages, 500);
       if (pollTimer) {
         clearInterval(pollTimer);
@@ -183,18 +188,21 @@ const goBack = () => {
   router.back();
 };
 
-onMounted(() => {
+onMounted(async () => {
   if (!targetUserId.value || !classId.value) {
     showAlert('聊天参数异常，请返回重试');
     router.back();
     return;
   }
-  loadTargetUserInfo();
   loadChatHistory();
+  await loadTargetUserInfo();
   if (pollTimer) {
     clearInterval(pollTimer);
   }
-  pollTimer = setInterval(pullNewMessages, 10000);
+  if (targetUserId.value != currentUserId.value) {
+    // 只有当聊天对象不是自己时才启动轮询
+    pollTimer = setInterval(pullNewMessages, 10000);
+  }
 });
 
 onUnmounted(() => {

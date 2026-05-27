@@ -30,10 +30,10 @@
           v-model.trim="content"
           class="content-textarea"
           placeholder="分享你的班级故事..."
-          maxlength="1000"
+          maxlength="5000"
           rows="8"
         ></textarea>
-        <div class="word-count">{{ content.length }}/1000</div>
+        <div class="word-count">{{ content.length }}/5000</div>
       </div>
 
       <!-- 图片上传区域 -->

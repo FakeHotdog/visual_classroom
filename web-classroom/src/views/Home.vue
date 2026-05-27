@@ -55,6 +55,9 @@
               <button v-else class="enter-btn" @click="enterClass(item)">加入班级</button>
               <!-- 管理员才能解散 -->
               <button v-if="item.ownerId === userInfo.id" class="dissolve-btn" @click="dissolveClass(item.classId)">解散班级</button>
+              <!-- 管理员才能修改暗号 -->
+              <button v-if="item.ownerId === userInfo.id && item.classCode" class="change-code-btn" @click="changeClassCode(item.classId)">修改暗号</button>
+              <button v-if="item.ownerId === userInfo.id && !item.classCode" class="change-code-btn" @click="changeClassCode(item.classId)">设置暗号</button>
             </div>
           </div>
 
@@ -115,10 +118,42 @@ const checkLogin = async () => {
     const data = await res.json();
     if (data.success) {
       userInfo.value = data.data;
+      if (!userInfo.value.identity || !userInfo.value.gender) {
+        await showAlert('提示', '请先完善个人信息');
+        router.push('/edit');
+      }
     } else {
       await showAlert('提示', data.message);
       localStorage.clear();
       router.push('/login');
+    }
+  } catch (err) {
+    console.error(err);
+  }
+};
+
+const changeClassCode = async (classId) => {
+  const newCode = await showPrompt('请输入新的班级口令（留空则删除口令）', '新口令');
+  if (newCode === null) return; // 用户取消
+
+  try {
+    const res = await fetch(`${backendBase}/api/update_class_code`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        classId,
+        classCode: newCode || '' // 空字符串 = 无口令
+      })
+    });
+    const data = await res.json();
+    if (data.success) {
+      await showAlert('成功', '班级口令已修改');
+      loadMyClasses(); // 刷新列表
+    } else {
+      await showAlert('失败', data.message);
     }
   } catch (err) {
     console.error(err);
@@ -479,6 +514,19 @@ onMounted(() => {
   display: flex;
   gap: 10px;
   justify-content: flex-end;
+}
+
+.change-code-btn {
+  padding: 6px 15px;
+  border: none;
+  border-radius: 15px;
+  font-size: 13px;
+  cursor: pointer;
+  background-color: #ff976a;
+  color: white;
+}
+.change-code-btn:hover {
+  background-color: #ff7b42;
 }
 
 .enter-btn, .dissolve-btn {

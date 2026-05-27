@@ -20,8 +20,8 @@
     </div>
 
     <!-- 身份选择 -->
-    <div class="item">
-      <span class="label">身份</span>
+    <div class="item required">
+      <span class="label">身份 <span class="required-tag">*</span></span>
       <select class="input select-input" v-model="userInfo.identity">
         <option disabled value="">请选择身份</option>
         <option v-for="item in identityList" :key="item" :value="item">{{ item }}</option>
@@ -29,8 +29,8 @@
     </div>
 
     <!-- 性别 -->
-    <div class="item">
-      <span class="label">性别</span>
+    <div class="item required">
+      <span class="label">性别 <span class="required-tag">*</span></span>
       <select class="input select-input" v-model="userInfo.gender">
         <option disabled value="">请选择性别</option>
         <option v-for="item in genderList" :key="item" :value="item">{{ item }}</option>
@@ -221,6 +221,14 @@ const submitToBackend = async (info) => {
 const saveUserInfo = async () => {
   if (!userInfo.value.nickname.trim()) {
     await showAlert('提示', '请输入昵称');
+    return;
+  }
+  if (!userInfo.value.identity) {
+    await showAlert('提示', '请选择身份');
+    return;
+  }
+  if (!userInfo.value.gender) {
+    await showAlert('提示', '请选择性别');
     return;
   }
 

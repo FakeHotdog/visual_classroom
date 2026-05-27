@@ -477,7 +477,7 @@ def init_class_member(current_user):
     if not classId:
         return error_response('缺少班级ID')
         
-    cls = ClassObj.query.get(classId)
+    cls = db.session.get(ClassObj, classId)
     if not cls:
         return error_response('班级不存在')
         
@@ -494,12 +494,30 @@ def init_class_member(current_user):
     db.session.commit()
     return success_response('加入成功')
 
+@app.route('/api/update_class_code', methods=['POST'])
+@token_required
+def update_class_code(current_user):
+    data = request.get_json()
+    classId = data.get('classId', '').strip()
+    classCode = data.get('classCode', '').strip()
+
+    cls = db.session.get(ClassObj, classId)
+    if not cls:
+        return error_response('班级不存在')
+
+    if cls.ownerId != current_user.id:
+        return error_response('只有班级创建者可以修改班级口令')
+
+    cls.classCode = classCode
+    db.session.commit()
+    return success_response('班级口令已更新')
+
 @app.route('/api/dissolve_class', methods=['POST'])
 @token_required
 def dissolve_class(current_user):
     data = request.get_json()
     classId = data.get('classId', '').strip()
-    cls = ClassObj.query.get(classId)
+    cls = db.session.get(ClassObj, classId)
     if not cls:
         return error_response('班级不存在')
         
@@ -910,7 +928,7 @@ def get_conversations(current_user):
         return error_response("缺少班级ID")
 
     # 查询班级信息，获取所有成员ID
-    cls = ClassObj.query.get(classId)
+    cls = db.session.get(ClassObj, classId)
     if not cls:
         return error_response("班级不存在")
     
@@ -1034,7 +1052,7 @@ def send_message(current_user):
         content=content,
         createTime=int(time.time()),
         type='text',
-        isRead=False
+        isRead= (receiver_id == str(current_user.id))  # 如果发给自己，直接标记为已读
     )
     db.session.add(new_msg)
     db.session.commit()
@@ -1065,7 +1083,8 @@ def pull_new_messages(current_user):
         ChatMessage.classId == classId,
         ChatMessage.senderId == targetUserId,
         ChatMessage.receiverId == current_user.id,
-        ChatMessage.id > lastMessageId
+        ChatMessage.id > lastMessageId,
+        ChatMessage.isRead == False
     ).order_by(ChatMessage.createTime.asc()).all()
     
     # 标记这些消息为已读
