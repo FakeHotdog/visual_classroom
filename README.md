@@ -42,25 +42,25 @@ You can now use this HTTPS URL in your frontend app (like WeChat Mini Program) t
 ## Running the Application in Windows
 
 ### Build distribution package
-'''powershell
+```powershell
 npm run build
-'''
+```
 
 ### Run python file
 For debugging, you can run: 
 
-'''powershell
+```powershell
 python app_h5.py
-'''
+```
 
 For production: 
 
-'''powershell
+```powershell
 pythonw app_h5.py prod *> app.log
-'''
+```
 
 For killing the server: 
 
-'''powershell
+```powershell
 taskkill /F /IM pythonw.exe
-'''
+```
