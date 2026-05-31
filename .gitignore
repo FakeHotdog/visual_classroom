@@ -4,6 +4,7 @@
 !.gitignore
 !README.md
 !LICENSE
+!requirements.txt
 
 # 允许跟踪 WeChatProgram 整个文件夹
 !WeChatProgram/

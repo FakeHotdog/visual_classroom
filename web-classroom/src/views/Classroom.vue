@@ -497,7 +497,7 @@ const kickMember = async (targetId, name) => {
 }
 
 const quitClass = async () => {
-  const confirm = await showConfirm('退出班级', `确定要退出 ${classInfo.value.className} 吗？退出后班级故事等数据将被清除。`);
+  const confirm = await showConfirm('退出班级', `确定要退出 ${classInfo.value.className} 吗？退出后班级聊天数据将被清除。`);
   if (confirm) {
     try {
       const res = await fetch(`${backendBase}/api/quit_class`, {

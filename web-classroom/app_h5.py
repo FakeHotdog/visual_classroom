@@ -7,6 +7,7 @@ import jwt
 from datetime import datetime, timedelta, timezone
 from sqlalchemy import func
 from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.utils import secure_filename
 import uuid
 import time
 import random
@@ -14,12 +15,10 @@ import base64
 from functools import wraps
 import os
 from dotenv import load_dotenv
-from werkzeug.utils import secure_filename
 from captcha.image import ImageCaptcha
 from waitress import serve
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
-import mimetypes
 import sys
 
 app = Flask(__name__)
@@ -46,11 +45,7 @@ app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
     'connect_args': {'check_same_thread': False},
     'pool_pre_ping': True
 } # SQLite特有配置，允许多线程访问，并自动检测断开连接
-mimetypes.add_type('image/jpeg', '.jpg')
-mimetypes.add_type('image/jpeg', '.jpeg')
-mimetypes.add_type('image/png', '.png')
-mimetypes.add_type('image/gif', '.gif')
-mimetypes.add_type('image/webp', '.webp')
+
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'bmp'}
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -523,7 +518,12 @@ def dissolve_class(current_user):
         
     if cls.ownerId != current_user.id:
         return error_response('只有班级创建者可以解散班级')
-        
+    
+    # 删除班级相关的座位、故事和聊天记录
+    ClassSeat.query.filter_by(classId=classId).delete()
+    ClassStory.query.filter_by(classId=classId).delete()
+    ChatMessage.query.filter_by(classId=classId).delete()
+    
     db.session.delete(cls)
     db.session.commit()
     return success_response('班级已解散')
@@ -591,6 +591,9 @@ def quit_class(current_user):
     # 清理座位
     ClassSeat.query.filter_by(classId=classId, userId=current_user.id).delete()
 
+    # 清理聊天记录
+    ChatMessage.query.filter_by(classId=classId).filter((ChatMessage.senderId == current_user.id) | (ChatMessage.receiverId == current_user.id)).delete()
+
     db.session.commit()
     return success_response("退出班级成功")
 
@@ -620,6 +623,9 @@ def kick_member(current_user):
     cls.memberCount -= 1
     
     ClassSeat.query.filter_by(classId=classId, userId=targetId).delete()
+
+    # 清理聊天记录
+    ChatMessage.query.filter_by(classId=classId).filter((ChatMessage.senderId == targetId) | (ChatMessage.receiverId == targetId)).delete()
 
     db.session.commit()
     return success_response("踢出成功")
@@ -1190,7 +1196,7 @@ def static_proxy(path):
 
 # ===================== 启动服务器 =====================
 if __name__ == '__main__':
-    if len(sys.argv) > 1 and sys.argv[1] == 'prod':
-        serve(app, host='0.0.0.0', port=5000, threads=8)
-    else:
+    if len(sys.argv) > 1 and sys.argv[1] == 'debug':
         app.run(host='0.0.0.0', port=5000, debug=True)
+    else:
+        serve(app, host='0.0.0.0', port=5000, threads=8)
