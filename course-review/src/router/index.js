@@ -25,8 +25,7 @@ const router = createRouter({
 })
 
 // 后端验证地址（与 App.vue 保持同步，当前运行在 5001 端口）
-import { backendBase } from '../config';
-
+const backendBase = import.meta.env.DEV ? 'http://127.0.0.1:5001' : '';
 // 导航守卫，检查用户是否已登录
 router.beforeEach(async (to, from, next) => {
   // 检查目标页面是否需要登录

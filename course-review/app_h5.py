@@ -187,6 +187,9 @@ def register():
 
     if not password:
         return error_response("密码不能为空", 400)
+    
+    if len(password) != 64:
+        return error_response('密码格式不正确（请勿篡改请求）')
 
     record = verification_codes.get(email)
     

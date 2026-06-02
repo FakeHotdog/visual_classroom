@@ -70,3 +70,8 @@ Same as the Flask backend in the Visual Classroom project.
 
 Same as the Flask backend in the Visual Classroom project.
 
+## Why I won't continue developing the backend
+
+As we all know, Tsinghua University has a very strict policy on other's evaluation of courses, which is the main reason why I won't continue developing the backend. The course review system is a very useful tool for students to share their experiences and opinions about courses, but it also has the potential to cause problems if not used properly. The strict policy on course evaluation in Tsinghua University makes it difficult to implement a course review system without violating the policy. Therefore, I have decided to focus on other projects that are more feasible and less likely to cause issues.
+
+Luckily, there are some substitute platforms that can be used for course reviews, such as [yourschool.cc](https://yourschool.cc/thubook) or [Tsinghua Courses](https://tsinghua.app/courses). These platforms provide a similar functionality for students to share their experiences and opinions about courses, and they are more compliant with the policies of Tsinghua University. Therefore, I recommend using these platforms for course reviews instead of developing a new backend for the course review system.
