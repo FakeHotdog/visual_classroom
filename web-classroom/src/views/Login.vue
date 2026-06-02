@@ -13,12 +13,6 @@
       <input v-model="password" type="password" placeholder="请输入密码">
     </div>
 
-    <div class="captcha-container">
-      <label>验证码：</label>
-      <input v-model="captchaCode" placeholder="请输入验证码" class="captcha-input" @keyup.enter="login">
-      <img v-if="captchaImage" :src="captchaImage" @click="fetchCaptcha" class="captcha-img" title="点击刷新" alt="验证码">
-    </div>
-
     <button @click="login">登录</button>
 
     <p :class="message.includes('成功') ? 'success' : 'error'">
@@ -44,9 +38,6 @@ export default {
     return {
       username: '',
       password: '',
-      captchaCode: '',
-      captchaId: '',
-      captchaImage: '',
       message: '',
       backendBase: ''
     }
@@ -54,31 +45,11 @@ export default {
   mounted() {
     // 兼容 Options API 的全局注入拿取
     this.backendBase = import.meta.env.DEV ? 'http://127.0.0.1:5000' : '';
-    this.fetchCaptcha()
   },
   methods: {
-    async fetchCaptcha() {
-      try {
-        const res = await fetch(`${this.backendBase}/captcha`)
-        const data = await res.json()
-        if (res.ok && data.success) {
-          this.captchaId = data.data.captchaId
-          this.captchaImage = data.data.captchaImage
-        } else {
-          this.message = data.message || '获取验证码失败'
-        }
-      } catch (error) {
-        console.error('获取验证码失败', error)
-        this.message = '网络错误，无法获取验证码'
-      }
-    },
     async login() {
       if (!this.username || !this.password) {
         this.message = '请输入账号和密码'
-        return
-      }
-      if (!this.captchaCode) {
-        this.message = '请输入验证码'
         return
       }
 
@@ -93,9 +64,7 @@ export default {
           },
           body: JSON.stringify({
             username: this.username,
-            password: hashedPassword,
-            captchaId: this.captchaId,
-            captchaCode: this.captchaCode
+            password: hashedPassword
           })
         })
 
@@ -111,9 +80,6 @@ export default {
           this.$router.push('/home')
         } else {
           this.message = data.message
-          // 登录失败刷新验证码
-          this.fetchCaptcha()
-          this.captchaCode = ''
         }
       } catch (error) {
         this.message = '连接失败，请检查后端是否运行'
@@ -173,24 +139,6 @@ p {
 
 .success {
   color: #67c23a;
-}
-
-.captcha-container {
-  display: flex;
-  align-items: center;
-}
-
-.captcha-input {
-  width: 100px;
-  margin-right: 10px;
-}
-
-.captcha-img {
-  width: 120px;
-  height: 40px;
-  cursor: pointer;
-  border: 1px solid #ccc;
-  border-radius: 4px;
 }
 
 a {

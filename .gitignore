@@ -30,3 +30,20 @@ web-classroom/*
 !web-classroom/package.json
 !web-classroom/package-lock.json
 !web-classroom/vite.config.js
+
+# 允许跟踪course-review 文件夹本身（才能进得去里面）
+!course-review/
+
+# 在 course-review 内部，忽略所有
+course-review/*
+
+# 但单独允许 course-review 下的 src 文件夹
+!course-review/src/
+!course-review/src/**
+!course-review/public/
+!course-review/public/**
+!course-review/index.html
+!course-review/app_h5.py
+!course-review/package.json
+!course-review/package-lock.json
+!course-review/vite.config.js

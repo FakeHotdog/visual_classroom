@@ -217,32 +217,24 @@ def login():
     data = request.get_json()
     username = data.get('username', '').strip()
     password = data.get('password', '').strip()
-    captcha_id = data.get('captchaId', '').strip()
-    captcha_code = data.get('captchaCode', '').strip()
 
     # 2. 参数校验
     if not username or not password:
         return error_response('请输入账号和密码')
-    if not captcha_code:
-        return error_response('请输入验证码')
-        
-    # 3. 校验验证码
-    if not verify_captcha(captcha_id, captcha_code):
-        return error_response('验证码错误或已过期')
-
-    # 4. 查询数据库，验证账号密码
+    
+    # 3. 查询数据库，验证账号密码
     user = User.query.filter_by(username=username).first()
     if not user or not check_password_hash(user.password, password):
         return error_response('账号或密码错误')
 
-    # 5. 生成JWT令牌（有效期7天，以后做其他接口鉴权用）
+    # 4. 生成JWT令牌（有效期7天，以后做其他接口鉴权用）
     token = jwt.encode({
         'user_id': user.id,
         'username': user.username,
         'exp': datetime.now(timezone.utc) + timedelta(days=7)
     }, JWT_SECRET, algorithm=JWT_ALGORITHM)
 
-    # 6. 返回登录成功结果和用户信息（前端会存Token和展示昵称）
+    # 5. 返回登录成功结果和用户信息（前端会存Token和展示昵称）
     return success_response(
         f'欢迎你，{user.nickname}',
         {
@@ -1182,9 +1174,6 @@ def init_scheduler():
         # 非阻塞启动失败时，降级为应用启动时执行一次
         database_maintenance()
 
-# ========== 初始化定时任务 ==========
-init_scheduler()
-
 # ===================== 前端资源路由（将dist目录作为静态文件根目录） =====================
 @app.route('/')
 def index():
@@ -1196,6 +1185,9 @@ def static_proxy(path):
 
 # ===================== 启动服务器 =====================
 if __name__ == '__main__':
+    
+    init_scheduler() # 启动定时任务
+
     if len(sys.argv) > 1 and sys.argv[1] == 'debug':
         app.run(host='0.0.0.0', port=5000, debug=True)
     else:

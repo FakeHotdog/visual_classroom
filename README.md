@@ -57,3 +57,16 @@ Then you can open a web browser and enter the IP address to access the applicati
 - You can also run the server in a cloud environment, such as AWS, Azure, or Google Cloud. In this way, you can access the application from anywhere in the world, not just in the same network. You need to set up a virtual machine, install Python and Flask, and run the server on it. Then you need to open the port 5000 for incoming traffic, and get the public IP address of the virtual machine. Finally, you can access the application using the public IP address.
 
 - You can also use Docker to containerize the application, which makes it easier to deploy and manage. You can create a Dockerfile that defines the environment and dependencies for the application, and then build a Docker image from it. Finally, you can run a Docker container from the image, and access the application through the container's IP address or port mapping.
+
+# Course Review / Flask Backend
+
+This repository contains the backend code for the course review system. The backend is built using Flask, which is a lightweight and easy-to-use web framework for Python. The backend provides APIs for the frontend to interact with the server, such as user authentication, course management, and review management. The backend also uses SQLAlchemy as the ORM (Object-Relational Mapping) tool to interact with the database, which makes it easier to manage the database and perform CRUD (Create, Read, Update, Delete) operations. The backend also uses Flask-CORS to handle Cross-Origin Resource Sharing (CORS) issues, which allows the frontend to make requests to the backend from a different origin. The backend also uses Flask-Limiter to limit the rate of requests, which helps to prevent abuse and protect the server from being overwhelmed. The backend also uses Flask-Mail to send emails, which can be used for user registration, password reset, and notifications. The backend also uses PyJWT to handle JSON Web Tokens (JWT), which is a secure way to transmit information between parties as a JSON object. The backend also uses python-dotenv to load environment variables from a .env file, which helps to keep sensitive information such as database credentials and secret keys out of the codebase. The backend also uses Flask-Migrate to handle database migrations, which allows you to manage changes to the database schema over time.
+
+## Building the environment
+
+Same as the Flask backend in the Visual Classroom project.
+
+## Running the Application
+
+Same as the Flask backend in the Visual Classroom project.
+
