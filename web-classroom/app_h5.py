@@ -3,15 +3,17 @@ from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
+from flask_mail import Mail, Message
 import jwt
 from datetime import datetime, timedelta, timezone
 from sqlalchemy import func
 from werkzeug.security import generate_password_hash, check_password_hash
-from werkzeug.utils import secure_filename
 import uuid
 import time
 import random
 import base64
+import socket
+import logging
 from functools import wraps
 import os
 from dotenv import load_dotenv
@@ -25,6 +27,18 @@ app = Flask(__name__)
 # 配置 JSON 响应在非 ASCII 字符时不进行 unicode 编码，保持正常中文显示
 app.config['JSON_AS_ASCII'] = False
 CORS(app)
+
+# 配置日志系统
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(message)s",
+    datefmt="[%Y-%m-%d %H:%M:%S]",
+    handlers=[
+        logging.FileHandler("serve.log", encoding="utf-8"),  # 写入文件
+        logging.StreamHandler(sys.stdout)  # 同时输出到控制台（调试用）
+    ]
+)
+logging.getLogger('apscheduler').setLevel(logging.WARNING)
 
 # ===================== 限流配置（防恶意刷接口） =====================
 limiter = Limiter(
@@ -61,6 +75,16 @@ db = SQLAlchemy(app)
 load_dotenv()  # 从 .env 文件加载环境变量
 JWT_SECRET = os.getenv('JWT_SECRET')  # 使用环境变量存储，切勿硬编码在代码中
 JWT_ALGORITHM = os.getenv('JWT_ALGORITHM')
+
+# ===================== 邮箱配置 (QQ邮箱) =====================
+app.config['MAIL_SERVER'] = 'smtp.qq.com'
+app.config['MAIL_PORT'] = 465
+app.config['MAIL_USE_SSL'] = True
+app.config['MAIL_USERNAME'] = os.getenv('QQ_EMAIL')  # 从环境变量获取邮箱账号
+app.config['MAIL_PASSWORD'] = os.getenv('AUTH_CODE')  # 从环境变量获取邮箱密码
+app.config['MAIL_DEFAULT_SENDER'] = os.getenv('QQ_EMAIL')  # 从环境变量获取默认发件人
+mail = Mail(app)
+MY_EMAIL = os.getenv('MY_EMAIL')  # 接收反馈的邮箱地址
 
 # ===================== 数据库模型 =====================
 class User(db.Model):
@@ -1140,16 +1164,64 @@ def database_maintenance():
             
             # 打印维护日志
             log_msg = (
-                f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] 数据库维护完成：\n"
-                f"  - 删除14天以上私聊消息: {old_chat_count} 条\n"
-                f"  - 删除3个月以上班级故事: {old_story_count} 条\n"
+                f"数据库维护完成：\n"
+                f" - 删除14天以上私聊消息: {old_chat_count} 条\n"
+                f" - 删除3个月以上班级故事: {old_story_count} 条\n"
             )
-            print(log_msg, file=sys.stdout)
+            logging.info(log_msg)
             
         except Exception as e:
             db.session.rollback()
-            error_msg = f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] 数据库维护失败: {str(e)}"
-            print(error_msg, file=sys.stderr)
+            error_msg = f"数据库维护失败: {str(e)}"
+            logging.error(error_msg)
+
+# ===================== 公网IP维护任务 =====================
+LAST_PUBLIC_IP = ''
+def get_server_public_ip():
+    try:
+        # 获取所有网络接口的IP地址
+        hostname = socket.gethostname()
+        all_ips = socket.gethostbyname_ex(hostname)[2]
+        
+        # 筛选出公网IP（排除内网和回环地址）
+        public_ips = []
+        for ip in all_ips:
+            if not (ip.startswith('127.') or 
+                   ip.startswith('10.') or 
+                   ip.startswith('172.16.') or 
+                   ip.startswith('192.168.')):
+                public_ips.append(ip)
+        
+        # 如果有公网IP，返回第一个；否则返回127.0.0.1
+        return public_ips[0] if public_ips else "127.0.0.1"
+    except:
+        return "127.0.0.1"
+
+def check_ip_change():
+    global LAST_PUBLIC_IP
+    current_ip = get_server_public_ip()
+    # 首次运行初始化
+    if LAST_PUBLIC_IP is None:
+        LAST_PUBLIC_IP = current_ip
+        return
+    
+    # IP发生变化
+    if current_ip != LAST_PUBLIC_IP:
+        timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        logging.info(f"检测到公网IP变更！")
+        logging.info(f"旧IP: http://{LAST_PUBLIC_IP}:5000")
+        logging.info(f"新IP: http://{current_ip}:5000")\
+        # 发送邮件通知管理员
+        try:
+            msg = Message(subject="【公网IP变更通知】",
+                      recipients=[MY_EMAIL],
+                      body=f"服务器公网IP发生变更！\n\n旧IP: http://{LAST_PUBLIC_IP}:5000\n新IP: http://{current_ip}:5000\n变更时间: {timestamp}\n\n请及时更新访问地址。")
+            mail.send(msg)
+            logging.info(f"已发送公网IP变更通知邮件至管理员邮箱{MY_EMAIL}")
+        except Exception as e:
+            logging.error(f"发送邮件失败: {e}")
+        
+        LAST_PUBLIC_IP = current_ip
 
 # ===================== 配置定时任务 =====================
 def init_scheduler():
@@ -1164,15 +1236,25 @@ def init_scheduler():
         id='database_maintenance',
         replace_existing=True
     )
-    
+
+    scheduler.add_job(
+        check_ip_change,
+        trigger='interval',
+        minutes=5,  # 检测间隔
+        id='ip_change_check',
+        replace_existing=True
+    )
     # 启动调度器
     try:
         scheduler.start()
-        print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] 定时任务已启动，每周日凌晨2点执行数据库维护", file=sys.stdout)
+        logging.info(f"定时任务已启动")
+        logging.info(f" - 每周日凌晨2点执行数据库维护")
+        logging.info(f" - 每5分钟检测一次公网IP变化")
     except Exception as e:
-        print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] 定时任务启动失败: {e}", file=sys.stderr)
+        logging.error(f"定时任务启动失败: {e}")
         # 非阻塞启动失败时，降级为应用启动时执行一次
         database_maintenance()
+        check_ip_change()
 
 # ===================== 前端资源路由（将dist目录作为静态文件根目录） =====================
 @app.route('/')
@@ -1185,10 +1267,15 @@ def static_proxy(path):
 
 # ===================== 启动服务器 =====================
 if __name__ == '__main__':
-    
+
     init_scheduler() # 启动定时任务
 
+    public_ip = get_server_public_ip()
+    LAST_PUBLIC_IP = public_ip  # 初始化全局IP变量
+    logging.info(f"服务器启动成功")
+    logging.info(f"公网访问地址: http://{public_ip}:5000")
+
     if len(sys.argv) > 1 and sys.argv[1] == 'debug':
-        app.run(host='0.0.0.0', port=5000, debug=True)
+        app.run(host='127.0.0.1', port=5000, debug=True)
     else:
         serve(app, host='0.0.0.0', port=5000, threads=8)

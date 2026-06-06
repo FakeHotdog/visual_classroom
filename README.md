@@ -37,8 +37,10 @@ python app_h5.py debug
 For production: 
 
 ```powershell
-pythonw app_h5.py *> serve.log
+pythonw app_h5.py
 ```
+
+And the log will be written to the serve.log file. You can check the log file to see if there are any errors or issues with the server.
 
 For killing the server: 
 
